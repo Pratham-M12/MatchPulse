@@ -1,0 +1,23 @@
+﻿export const queryKeys = {
+  live: ['fixtures', 'live'] as const,
+  byDate: (date: string) => ['fixtures', 'date', date] as const,
+  byLeague: (leagueId: string, season: number) => ['fixtures', 'league', leagueId, season] as const,
+  byTeam: (teamId: string, season?: number) => ['fixtures', 'team', teamId, season ?? 'default'] as const,
+  fixture: (id: string) => ['fixture', id] as const,
+  events: (id: string) => ['fixture', id, 'events'] as const,
+  statistics: (id: string) => ['fixture', id, 'statistics'] as const,
+  lineups: (id: string) => ['fixture', id, 'lineups'] as const,
+  prediction: (id: string) => ['fixture', id, 'prediction'] as const,
+  standings: (leagueId: string, season: number) => ['standings', leagueId, season] as const,
+  team: (teamId: string) => ['team', teamId] as const,
+  squad: (teamId: string) => ['squad', teamId] as const,
+  topScorers: (leagueId: string, season: number) => ['topscorers', leagueId, season] as const,
+  player: (playerId: string, season: number) => ['player', playerId, season] as const,
+  search: (query: string) => ['search', query] as const,
+  news: ['news'] as const,
+  leagueSeason: (leagueId: number | string, coverage?: string) =>
+    ['league', String(leagueId), 'season', coverage ?? 'any'] as const,
+  playerSeason: (playerId: string | number) => ['player', String(playerId), 'season'] as const,
+  teamSeason: (teamId: string | number) => ['team', String(teamId), 'season'] as const,
+  accountPlan: ['account', 'plan'] as const,
+};
