@@ -47,6 +47,28 @@ export function useHomeFeed(options?: { pollLive?: boolean }) {
     [live, upcoming, recent, favoriteTeamIds, favoriteLeagueIds]
   );
 
+  const yourMatchdayMatches = useMemo(() => {
+    if (favoriteTeamIds.length === 0) return [];
+
+    // Deduplicate candidate matches across live, today, and tomorrow from existing queries
+    const candidateMatches = uniqueMatches([...live, ...today, ...tomorrow]);
+
+    // Filter matches involving favorite teams by stable team ID
+    const followedMatches = candidateMatches.filter((match) =>
+      involvesTeam(match, favoriteTeamIds)
+    );
+
+    // Prioritize live matches first
+    const liveMatches = followedMatches.filter((match) => match.status === 'live');
+
+    // Order upcoming matches by kickoff time, earliest first
+    const upcomingMatches = followedMatches
+      .filter((match) => match.status === 'scheduled')
+      .sort((a, b) => new Date(a.kickoff).getTime() - new Date(b.kickoff).getTime());
+
+    return [...liveMatches, ...upcomingMatches];
+  }, [live, today, tomorrow, favoriteTeamIds]);
+
   const featured: Match | undefined =
     rankMatches(
       live.filter((match) => involvesTeam(match, favoriteTeamIds)).concat(live),
@@ -71,7 +93,8 @@ export function useHomeFeed(options?: { pollLive?: boolean }) {
     matchday,
     nextForYou,
     trending,
-    favoriteTeamMatches: uniqueMatches([...live, ...upcoming]).filter((match) => involvesTeam(match, favoriteTeamIds)),
+    yourMatchdayMatches,
+    favoriteTeamMatches: yourMatchdayMatches,
     isLoading,
     isError,
     isLiveLoading: liveQuery.isLoading,

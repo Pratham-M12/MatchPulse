@@ -1,6 +1,6 @@
-﻿import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 
 import { FeaturedMatchCard } from '@/components/match/FeaturedMatchCard';
 import { HomeHeader } from '@/components/home/HomeHeader';
@@ -8,18 +8,18 @@ import { HomeNewsSection } from '@/components/home/HomeNewsSection';
 import { MatchdayBanner } from '@/components/home/MatchdayBanner';
 import { MatchList } from '@/components/home/MatchList';
 import { PopularLeagues } from '@/components/home/PopularLeagues';
+import { YourMatchdaySection } from '@/components/home/YourMatchdaySection';
+import { YourTeamsSection } from '@/components/home/YourTeamsSection';
 import { AppScreen } from '@/components/layout/AppScreen';
 import { DataMeta, OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SectionTitle } from '@/components/ui/SectionTitle';
-import { TeamLogo } from '@/components/ui/TeamLogo';
-import { Typography } from '@/components/ui/Typography';
 import { popularCompetitions } from '@/data';
 import { useHomeFeed } from '@/hooks/useHomeFeed';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { formatLastUpdated } from '@/lib/format/datetime';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
 import { useInboxStore } from '@/store/useInboxStore';
-import { colors, radius, spacing } from '@/theme';
+import { colors, spacing } from '@/theme';
 import type { Competition, Match } from '@/types/football';
 
 export default function HomeScreen() {
@@ -54,31 +54,25 @@ export default function HomeScreen() {
 
         {feed.matchday ? <MatchdayBanner match={feed.matchday} /> : null}
 
+        <YourTeamsSection
+          teams={favoriteTeams}
+          onTeamPress={(team) => router.push(`/team/${team.id}`)}
+          onSearchPress={() => router.push('/search')}
+        />
+
+        <YourMatchdaySection
+          favoriteTeamCount={favoriteTeams.length}
+          matches={filterByLeague(feed.yourMatchdayMatches)}
+          isLoading={feed.isLoading}
+          selectedLeagueId={selectedLeagueId}
+          onMatchPress={goToMatch}
+          onSearchPress={() => router.push('/search')}
+          onBrowseMatchesPress={() => router.push('/matches')}
+        />
+
         {featured ? (
           <View style={{ paddingHorizontal: spacing.base }}>
             <FeaturedMatchCard match={featured} onPress={() => goToMatch(featured)} />
-          </View>
-        ) : null}
-
-        {favoriteTeams.length > 0 ? (
-          <View style={{ gap: spacing.md }}>
-            <View style={{ paddingHorizontal: spacing.base }}>
-              <SectionTitle title="Your clubs" />
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: spacing.base, gap: spacing.sm }}>
-              {favoriteTeams.map((team) => (
-                <Pressable
-                  key={team.id}
-                  onPress={() => router.push(`/team/${team.id}`)}
-                  accessibilityRole="button"
-                  accessibilityLabel={team.name}
-                  style={{ alignItems: 'center', gap: spacing.xs, width: 72 }}
-                >
-                  <TeamLogo team={team} size={48} />
-                  <Typography variant="caption" numberOfLines={1}>{team.shortName}</Typography>
-                </Pressable>
-              ))}
-            </ScrollView>
           </View>
         ) : null}
 
@@ -110,14 +104,6 @@ export default function HomeScreen() {
           onActionPress={() => router.push('/matches')}
           onMatchPress={goToMatch}
         />
-
-        {feed.favoriteTeamMatches.length > 0 ? (
-          <MatchList
-            title="For your teams"
-            matches={filterByLeague(feed.favoriteTeamMatches)}
-            onMatchPress={goToMatch}
-          />
-        ) : null}
 
         <MatchList
           title="Upcoming"
