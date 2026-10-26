@@ -1,4 +1,4 @@
-# MatchPulse
+﻿# MatchPulse
 
 <div align="center">
 
@@ -12,7 +12,7 @@
 > License: Not specified
 
 <p align="center">
-  <strong>Live football data, match insights, teams, players, leagues, and more — in a focused mobile experience.</strong>
+  <strong>Live football data, match insights, teams, players, leagues, and more â€” in a focused mobile experience.</strong>
 </p>
 
 </div>
@@ -181,29 +181,29 @@ MatchPulse utilizes **Expo Router v6** for typed, file-based routing.
 
 ```
 app/
-├── _layout.tsx                     # Root provider layout (QueryClient, Persistence, Notifications, Theme)
-├── (tabs)/
-│   ├── _layout.tsx                 # Custom styled bottom navigation tab bar
-│   ├── index.tsx                   # Home screen (Live matches, today's games, news, shortcuts)
-│   ├── matches.tsx                 # Matches screen (Live, upcoming, finished, date picker)
-│   ├── leagues.tsx                 # Leagues screen (Browse major domestic & continental leagues)
-│   └── profile.tsx                 # Profile & Favorites hub (Saved teams, leagues, matches)
-├── match/
-│   └── [id].tsx                    # Match Detail (Header, Overview, Timeline, Stats, Lineups, Predictions)
-├── player/
-│   └── [id].tsx                    # Player Profile (Biographical details, seasonal stats, ratings)
-├── team/
-│   └── [id].tsx                    # Team Detail (Club dossier, season fixtures, full squad list)
-├── league/
-│   └── [id].tsx                    # League Detail (Standings table, fixtures, top scorers)
-├── search/
-│   └── index.tsx                   # Search modal (Instant filter, recent search history)
-├── settings/
-│   └── index.tsx                   # Settings modal (Data Saver, live refresh, notifications, time format)
-├── notifications/
-│   └── index.tsx                   # In-app Notification Center (History of triggered match alerts)
-└── dev/
-    └── index.tsx                   # Developer diagnostics (API call history, cache metrics, plan status)
+â”œâ”€â”€ _layout.tsx                     # Root provider layout (QueryClient, Persistence, Notifications, Theme)
+â”œâ”€â”€ (tabs)/
+â”‚   â”œâ”€â”€ _layout.tsx                 # Custom styled bottom navigation tab bar
+â”‚   â”œâ”€â”€ index.tsx                   # Home screen (Live matches, today's games, news, shortcuts)
+â”‚   â”œâ”€â”€ matches.tsx                 # Matches screen (Live, upcoming, finished, date picker)
+â”‚   â”œâ”€â”€ leagues.tsx                 # Leagues screen (Browse major domestic & continental leagues)
+â”‚   â””â”€â”€ profile.tsx                 # Profile & Favorites hub (Saved teams, leagues, matches)
+â”œâ”€â”€ match/
+â”‚   â””â”€â”€ [id].tsx                    # Match Detail (Header, Overview, Timeline, Stats, Lineups, Predictions)
+â”œâ”€â”€ player/
+â”‚   â””â”€â”€ [id].tsx                    # Player Profile (Biographical details, seasonal stats, ratings)
+â”œâ”€â”€ team/
+â”‚   â””â”€â”€ [id].tsx                    # Team Detail (Club dossier, season fixtures, full squad list)
+â”œâ”€â”€ league/
+â”‚   â””â”€â”€ [id].tsx                    # League Detail (Standings table, fixtures, top scorers)
+â”œâ”€â”€ search/
+â”‚   â””â”€â”€ index.tsx                   # Search modal (Instant filter, recent search history)
+â”œâ”€â”€ settings/
+â”‚   â””â”€â”€ index.tsx                   # Settings modal (Data Saver, live refresh, notifications, time format)
+â”œâ”€â”€ notifications/
+â”‚   â””â”€â”€ index.tsx                   # In-app Notification Center (History of triggered match alerts)
+â””â”€â”€ dev/
+    â””â”€â”€ index.tsx                   # Developer diagnostics (API call history, cache metrics, plan status)
 ```
 
 ### UI & Visual System
@@ -235,47 +235,47 @@ MatchPulse follows a **Clean, Layered Architecture** separating presentation, st
 ### Layered System Architecture
 
 ```
-┌────────────────────────────────────────────────────────┐
-│                   Presentation Layer                   │
-│   Screens (app/) & Atomic Components (components/)     │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│                  State Management                      │
-│   • Server State: TanStack React Query (hooks/)        │
-│   • Client State: Zustand Stores (store/)              │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│                  Repository Layer                      │
-│   footballRepository (lib/api/repository.ts)           │
-│   • Decouples UI & hooks from API transport details    │
-│   • Maps DTO schemas into strict Domain Models         │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│                   Service Layer                        │
-│   • fixturesService.ts   • newsService.ts              │
-│   • seasonResolver.ts    • diagnostics.ts              │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│               Network & Contract Layer                 │
-│   apiFootballClient (lib/api/client.ts)                │
-│   • Axios interceptors & HTTP 200 error parsing        │
-│   • Typed error taxonomy & exponential backoff         │
-└───────────────────────────┬────────────────────────────┘
-                            │
-                            ▼
-┌────────────────────────────────────────────────────────┐
-│            External Provider / Storage                 │
-│   • API-Football v3 REST API (remote)                  │
-│   • AsyncStorage & NetInfo (local persistence)         │
-└────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                   Presentation Layer                   â”‚
+â”‚   Screens (app/) & Atomic Components (components/)     â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                            â”‚
+                            â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                  State Management                      â”‚
+â”‚   â€¢ Server State: TanStack React Query (hooks/)        â”‚
+â”‚   â€¢ Client State: Zustand Stores (store/)              â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                            â”‚
+                            â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                  Repository Layer                      â”‚
+â”‚   footballRepository (lib/api/repository.ts)           â”‚
+â”‚   â€¢ Decouples UI & hooks from API transport details    â”‚
+â”‚   â€¢ Maps DTO schemas into strict Domain Models         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                            â”‚
+                            â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                   Service Layer                        â”‚
+â”‚   â€¢ fixturesService.ts   â€¢ newsService.ts              â”‚
+â”‚   â€¢ seasonResolver.ts    â€¢ diagnostics.ts              â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                            â”‚
+                            â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚               Network & Contract Layer                 â”‚
+â”‚   apiFootballClient (lib/api/client.ts)                â”‚
+â”‚   â€¢ Axios interceptors & HTTP 200 error parsing        â”‚
+â”‚   â€¢ Typed error taxonomy & exponential backoff         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+                            â”‚
+                            â–¼
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚            External Provider / Storage                 â”‚
+â”‚   â€¢ API-Football v3 REST API (remote)                  â”‚
+â”‚   â€¢ AsyncStorage & NetInfo (local persistence)         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ### System Architecture & Data Flow Diagram
@@ -397,98 +397,98 @@ flowchart TD
 ### Flow 1: Live Fixtures & Auto-Refresh
 ```
 Home / Matches Screen
-  │
-  ├── 1. Calls useLiveFixtures({ poll: true, focused: true })
-  │
-  ├── 2. Reads liveAutoRefresh and dataSaver from usePreferencesStore
-  │
-  ├── 3. Evaluates shouldPollLiveList():
-  │      • poll === true
-  │      • focused === true (via useIsFocused)
-  │      • dataSaver === false
-  │      • liveAutoRefresh === true
-  │      &rarr; Returns 120,000ms polling interval
-  │
-  ├── 4. Executes footballRepository.liveMatches()
-  │      &rarr; fixturesService.fetchLiveFixtures()
-  │      &rarr; apiFootballClient.get('/fixtures?live=all')
-  │
-  ├── 5. Parses response via mapFixturesToMatches(response, { requireSupportedLeague: true })
-  │
-  └── 6. Updates React Query cache queryKeys.live
+  â”‚
+  â”œâ”€â”€ 1. Calls useLiveFixtures({ poll: true, focused: true })
+  â”‚
+  â”œâ”€â”€ 2. Reads liveAutoRefresh and dataSaver from usePreferencesStore
+  â”‚
+  â”œâ”€â”€ 3. Evaluates shouldPollLiveList():
+  â”‚      â€¢ poll === true
+  â”‚      â€¢ focused === true (via useIsFocused)
+  â”‚      â€¢ dataSaver === false
+  â”‚      â€¢ liveAutoRefresh === true
+  â”‚      &rarr; Returns 120,000ms polling interval
+  â”‚
+  â”œâ”€â”€ 4. Executes footballRepository.liveMatches()
+  â”‚      &rarr; fixturesService.fetchLiveFixtures()
+  â”‚      &rarr; apiFootballClient.get('/fixtures?live=all')
+  â”‚
+  â”œâ”€â”€ 5. Parses response via mapFixturesToMatches(response, { requireSupportedLeague: true })
+  â”‚
+  â””â”€â”€ 6. Updates React Query cache queryKeys.live
          &rarr; Re-renders scoreboards with live minute and status badges
 ```
 
 ### Flow 2: Match Detail Multi-Query Hydration
 ```
 Match Detail Screen (app/match/[id].tsx)
-  │
-  ├── 1. useFixtureDetails(id) triggers parallel TanStack queries:
-  │      • queryKeys.fixture(id)    &rarr; footballRepository.matchById(id)
-  │      • queryKeys.events(id)     &rarr; footballRepository.matchEvents(id)
-  │      • queryKeys.stats(id)      &rarr; footballRepository.matchStatistics(id)
-  │      • queryKeys.lineups(id)    &rarr; footballRepository.matchLineups(id)
-  │      • queryKeys.prediction(id) &rarr; footballRepository.matchPredictions(id)
-  │
-  ├── 2. Parallel API requests dispatched via apiFootballClient
-  │      (or served instantly from dehydrated AsyncStorage cache)
-  │
-  ├── 3. If fixture is live:
-  │      shouldPollLiveMatch() activates 30-second refetch interval
-  │
-  └── 4. Active tab renders:
-         • Overview: Head-to-head, venue, referee
-         • Timeline: Chronological events with clickable player profile links
-         • Statistics: Possession, shots, xG side-by-side comparative bars
-         • Lineups: Starting XI formations, tactical pitch, bench
-         • Predictions: Outcome probability bars
+  â”‚
+  â”œâ”€â”€ 1. useFixtureDetails(id) triggers parallel TanStack queries:
+  â”‚      â€¢ queryKeys.fixture(id)    &rarr; footballRepository.matchById(id)
+  â”‚      â€¢ queryKeys.events(id)     &rarr; footballRepository.matchEvents(id)
+  â”‚      â€¢ queryKeys.stats(id)      &rarr; footballRepository.matchStatistics(id)
+  â”‚      â€¢ queryKeys.lineups(id)    &rarr; footballRepository.matchLineups(id)
+  â”‚      â€¢ queryKeys.prediction(id) &rarr; footballRepository.matchPredictions(id)
+  â”‚
+  â”œâ”€â”€ 2. Parallel API requests dispatched via apiFootballClient
+  â”‚      (or served instantly from dehydrated AsyncStorage cache)
+  â”‚
+  â”œâ”€â”€ 3. If fixture is live:
+  â”‚      shouldPollLiveMatch() activates 30-second refetch interval
+  â”‚
+  â””â”€â”€ 4. Active tab renders:
+         â€¢ Overview: Head-to-head, venue, referee
+         â€¢ Timeline: Chronological events with clickable player profile links
+         â€¢ Statistics: Possession, shots, xG side-by-side comparative bars
+         â€¢ Lineups: Starting XI formations, tactical pitch, bench
+         â€¢ Predictions: Outcome probability bars
 ```
 
 ### Flow 3: Player Profile & Dynamic Season Resolution
 ```
 Tap Player in Lineup / Timeline / Squad
-  │
-  ├── 1. Navigates to app/player/[id].tsx with numeric playerId (e.g., 545)
-  │
-  ├── 2. Invokes usePlayerDetails(playerId)
-  │
-  ├── 3. Calls resolvePlayerSeason(playerId):
-  │      • Checks account plan ceiling via getMaxAllowedSeason()
-  │      • Queries fetchPlayerSeasons(playerId)
-  │      • Selects newest season compatible with account plan (e.g., 2024 instead of 2026)
-  │
-  ├── 4. Dispatches fetchPlayer(playerId, resolvedSeason)
-  │      &rarr; apiFootballClient.get(`/players?id=${playerId}&season=${season}`)
-  │
-  ├── 5. mapPlayerProfile(apiPlayer) transforms DTO into Player domain model
-  │
-  └── 6. UI displays biographical card, radar-style metrics, attacking output, and discipline
+  â”‚
+  â”œâ”€â”€ 1. Navigates to app/player/[id].tsx with numeric playerId (e.g., 545)
+  â”‚
+  â”œâ”€â”€ 2. Invokes usePlayerDetails(playerId)
+  â”‚
+  â”œâ”€â”€ 3. Calls resolvePlayerSeason(playerId):
+  â”‚      â€¢ Checks account plan ceiling via getMaxAllowedSeason()
+  â”‚      â€¢ Queries fetchPlayerSeasons(playerId)
+  â”‚      â€¢ Selects newest season compatible with account plan (e.g., 2024 instead of 2026)
+  â”‚
+  â”œâ”€â”€ 4. Dispatches fetchPlayer(playerId, resolvedSeason)
+  â”‚      &rarr; apiFootballClient.get(`/players?id=${playerId}&season=${season}`)
+  â”‚
+  â”œâ”€â”€ 5. mapPlayerProfile(apiPlayer) transforms DTO into Player domain model
+  â”‚
+  â””â”€â”€ 6. UI displays biographical card, radar-style metrics, attacking output, and discipline
 ```
 
 ### Flow 4: Offline Cold Launch & Hydration
 ```
 Cold App Launch (No Active Network Connection)
-  │
-  ├── 1. RootLayout initializes createQueryClient()
-  │
-  ├── 2. Dispatches hydrateQueryClient(queryClient) in parallel with 1000ms safety race:
-  │      • Reads PERSISTENCE_KEY ('matchpulse-query-cache-v1') from AsyncStorage
-  │      • Validates cache timestamp against MAX_CACHE_AGE_MS (7 days)
-  │      • Hydrates dehydrated query cache into active QueryClient
-  │
-  ├── 3. Screen components mount:
-  │      • useQuery finds cached data in memory immediately (status: 'success')
-  │      • Screens render instantly with cached fixtures, standings, and profiles
-  │
-  ├── 4. NetInfo detects isConnected === false:
-  │      • onlineManager sets online status to false
-  │      • React Query suppresses background refetches
-  │      • Offline banner indicates cached state
-  │
-  └── 5. User reconnects to Wi-Fi / Cellular:
-         • NetInfo fires online event &rarr; onlineManager.setOnline(true)
-         • React Query triggers refetchOnReconnect for all stale queries
-         • Cache is updated in background and persisted back to AsyncStorage
+  â”‚
+  â”œâ”€â”€ 1. RootLayout initializes createQueryClient()
+  â”‚
+  â”œâ”€â”€ 2. Dispatches hydrateQueryClient(queryClient) in parallel with 1000ms safety race:
+  â”‚      â€¢ Reads PERSISTENCE_KEY ('matchpulse-query-cache-v1') from AsyncStorage
+  â”‚      â€¢ Validates cache timestamp against MAX_CACHE_AGE_MS (7 days)
+  â”‚      â€¢ Hydrates dehydrated query cache into active QueryClient
+  â”‚
+  â”œâ”€â”€ 3. Screen components mount:
+  â”‚      â€¢ useQuery finds cached data in memory immediately (status: 'success')
+  â”‚      â€¢ Screens render instantly with cached fixtures, standings, and profiles
+  â”‚
+  â”œâ”€â”€ 4. NetInfo detects isConnected === false:
+  â”‚      â€¢ onlineManager sets online status to false
+  â”‚      â€¢ React Query suppresses background refetches
+  â”‚      â€¢ Offline banner indicates cached state
+  â”‚
+  â””â”€â”€ 5. User reconnects to Wi-Fi / Cellular:
+         â€¢ NetInfo fires online event &rarr; onlineManager.setOnline(true)
+         â€¢ React Query triggers refetchOnReconnect for all stale queries
+         â€¢ Cache is updated in background and persisted back to AsyncStorage
 ```
 
 ---
@@ -644,79 +644,79 @@ To test offline cache hydration on a connected physical Android device or emulat
 
 ```
 matchpulse/
-├── app/                            # Expo Router file-based route hierarchy
-│   ├── (tabs)/                     # Main bottom tab screens
-│   │   ├── _layout.tsx             # Custom styled tab navigation bar
-│   │   ├── index.tsx               # Home tab (Live fixtures, news, shortcuts)
-│   │   ├── matches.tsx             # Matches tab (Tri-state filter, date picker)
-│   │   ├── leagues.tsx             # Leagues tab (Competitions catalog)
-│   │   └── profile.tsx             # Profile tab (Saved favorites, preferences)
-│   ├── match/[id].tsx              # Match Detail screen (Multi-tab fixture centre)
-│   ├── player/[id].tsx             # Player Profile screen (Stats, biographical info)
-│   ├── team/[id].tsx               # Team Profile screen (Roster, season schedule)
-│   ├── league/[id].tsx             # League Detail screen (Standings table, top scorers)
-│   ├── search/index.tsx            # Search modal & query history
-│   ├── settings/index.tsx          # Settings screen (Data Saver, polling controls)
-│   ├── notifications/index.tsx     # In-app notification center history
-│   ├── dev/index.tsx               # Dev diagnostics & telemetry
-│   └── _layout.tsx                 # Root layout, QueryClient, and offline hydration
-├── components/                     # Modular presentation components
-│   ├── entity/                     # Reusable team and league presentation cards
-│   ├── home/                       # HomeHeader, MatchList, NewsSection, NewsCard
-│   ├── layout/                     # ScreenContainer, Header, OfflineBanner
-│   ├── league/                     # StandingsTable, LeagueCard
-│   ├── match/                      # MatchCard, MatchHeader, MatchTimeline, MatchStats
-│   ├── navigation/                 # TabBarIcon, BackButton
-│   ├── profile/                    # FavoritesList, SettingsItem
-│   └── ui/                         # Badge, Button, ErrorState, EmptyState, Typography
-├── data/                           # Seeded local data for offline development
-│   ├── competitions.ts             # Supported competitions seed list
-│   ├── matchDetails.ts             # Comprehensive mock match details fallback
-│   ├── matches.ts                  # Mock live and scheduled matches
-│   ├── players.ts                  # Mock player profiles
-│   └── teams.ts                    # Seeded team profiles
-├── hooks/                          # Custom TanStack React Query hooks
-│   ├── useFixtureDetails.ts        # Parallel fixture overview, timeline, stats, lineups
-│   ├── useFootballNews.ts          # News query hook with error contract handling
-│   ├── useLiveFixtures.ts          # Focus-aware live matches polling
-│   ├── usePlayerDetails.ts         # Season-aware real player profile query
-│   ├── useStandings.ts             # League table standings query
-│   └── useTeamDetails.ts           # Team profile, squad, and season fixtures
-├── lib/
-│   ├── api/                        # Network transport, repository, and services
-│   │   ├── client.ts               # Axios instance with interceptors and error assertions
-│   │   ├── currentSeason.ts        # Fallback season derivation
-│   │   ├── diagnostics.ts          # Request logging and call counter
-│   │   ├── errors.ts               # Error taxonomy and retry policy
-│   │   ├── leagueIds.ts            # Mapping between internal and API-Football league IDs
-│   │   ├── queryConfig.ts          # Centralized cache timings, stale times, and poll logic
-│   │   ├── queryKeys.ts            # Centralized query key factory
-│   │   ├── repository.ts           # Domain-facing football repository
-│   │   ├── seasonResolver.ts       # Dynamic season resolution and plan detection
-│   │   ├── dto/                    # API-Football JSON schema interfaces
-│   │   ├── mappers/                # Transform DTOs into domain models
-│   │   └── services/               # Specialized API service modules
-│   ├── format/                     # Date, time, and score formatting utilities
-│   ├── notifications/              # Local notification handler and reminder scheduling
-│   ├── query/                      # React Query client, persistence, and NetInfo sync
-│   └── storage/                    # AsyncStorage wrapper for Zustand middleware
-├── store/                          # Zustand client-state stores
-│   ├── useFavoritesStore.ts        # Pinned teams, leagues, and matches
-│   ├── useInboxStore.ts            # Notification history records
-│   ├── usePreferencesStore.ts      # Data Saver, polling toggles, time formats
-│   ├── useRemindersStore.ts        # Scheduled match kickoff reminders
-│   └── useSearchHistoryStore.ts    # Recent search queries
-├── theme/                          # Unified design system tokens
-│   ├── colors.js                   # Color palette (single source of truth)
-│   ├── radius.js                   # Border radius tokens
-│   ├── spacing.js                  # Spacing and layout tokens
-│   ├── typography.js               # Font weights and sizes
-│   └── index.ts                    # TypeScript theme re-exports
-├── types/
-│   └── football.ts                 # Domain models (Match, Team, Player, Competition)
-├── app.json                        # Expo application manifest
-├── package.json                    # Project dependencies and npm scripts
-└── tsconfig.json                   # TypeScript configuration
+â”œâ”€â”€ app/                            # Expo Router file-based route hierarchy
+â”‚   â”œâ”€â”€ (tabs)/                     # Main bottom tab screens
+â”‚   â”‚   â”œâ”€â”€ _layout.tsx             # Custom styled tab navigation bar
+â”‚   â”‚   â”œâ”€â”€ index.tsx               # Home tab (Live fixtures, news, shortcuts)
+â”‚   â”‚   â”œâ”€â”€ matches.tsx             # Matches tab (Tri-state filter, date picker)
+â”‚   â”‚   â”œâ”€â”€ leagues.tsx             # Leagues tab (Competitions catalog)
+â”‚   â”‚   â””â”€â”€ profile.tsx             # Profile tab (Saved favorites, preferences)
+â”‚   â”œâ”€â”€ match/[id].tsx              # Match Detail screen (Multi-tab fixture centre)
+â”‚   â”œâ”€â”€ player/[id].tsx             # Player Profile screen (Stats, biographical info)
+â”‚   â”œâ”€â”€ team/[id].tsx               # Team Profile screen (Roster, season schedule)
+â”‚   â”œâ”€â”€ league/[id].tsx             # League Detail screen (Standings table, top scorers)
+â”‚   â”œâ”€â”€ search/index.tsx            # Search modal & query history
+â”‚   â”œâ”€â”€ settings/index.tsx          # Settings screen (Data Saver, polling controls)
+â”‚   â”œâ”€â”€ notifications/index.tsx     # In-app notification center history
+â”‚   â”œâ”€â”€ dev/index.tsx               # Dev diagnostics & telemetry
+â”‚   â””â”€â”€ _layout.tsx                 # Root layout, QueryClient, and offline hydration
+â”œâ”€â”€ components/                     # Modular presentation components
+â”‚   â”œâ”€â”€ entity/                     # Reusable team and league presentation cards
+â”‚   â”œâ”€â”€ home/                       # HomeHeader, MatchList, NewsSection, NewsCard
+â”‚   â”œâ”€â”€ layout/                     # ScreenContainer, Header, OfflineBanner
+â”‚   â”œâ”€â”€ league/                     # StandingsTable, LeagueCard
+â”‚   â”œâ”€â”€ match/                      # MatchCard, MatchHeader, MatchTimeline, MatchStats
+â”‚   â”œâ”€â”€ navigation/                 # TabBarIcon, BackButton
+â”‚   â”œâ”€â”€ profile/                    # FavoritesList, SettingsItem
+â”‚   â””â”€â”€ ui/                         # Badge, Button, ErrorState, EmptyState, Typography
+â”œâ”€â”€ data/                           # Seeded local data for offline development
+â”‚   â”œâ”€â”€ competitions.ts             # Supported competitions seed list
+â”‚   â”œâ”€â”€ matchDetails.ts             # Comprehensive mock match details fallback
+â”‚   â”œâ”€â”€ matches.ts                  # Mock live and scheduled matches
+â”‚   â”œâ”€â”€ players.ts                  # Mock player profiles
+â”‚   â””â”€â”€ teams.ts                    # Seeded team profiles
+â”œâ”€â”€ hooks/                          # Custom TanStack React Query hooks
+â”‚   â”œâ”€â”€ useFixtureDetails.ts        # Parallel fixture overview, timeline, stats, lineups
+â”‚   â”œâ”€â”€ useFootballNews.ts          # News query hook with error contract handling
+â”‚   â”œâ”€â”€ useLiveFixtures.ts          # Focus-aware live matches polling
+â”‚   â”œâ”€â”€ usePlayerDetails.ts         # Season-aware real player profile query
+â”‚   â”œâ”€â”€ useStandings.ts             # League table standings query
+â”‚   â””â”€â”€ useTeamDetails.ts           # Team profile, squad, and season fixtures
+â”œâ”€â”€ lib/
+â”‚   â”œâ”€â”€ api/                        # Network transport, repository, and services
+â”‚   â”‚   â”œâ”€â”€ client.ts               # Axios instance with interceptors and error assertions
+â”‚   â”‚   â”œâ”€â”€ currentSeason.ts        # Fallback season derivation
+â”‚   â”‚   â”œâ”€â”€ diagnostics.ts          # Request logging and call counter
+â”‚   â”‚   â”œâ”€â”€ errors.ts               # Error taxonomy and retry policy
+â”‚   â”‚   â”œâ”€â”€ leagueIds.ts            # Mapping between internal and API-Football league IDs
+â”‚   â”‚   â”œâ”€â”€ queryConfig.ts          # Centralized cache timings, stale times, and poll logic
+â”‚   â”‚   â”œâ”€â”€ queryKeys.ts            # Centralized query key factory
+â”‚   â”‚   â”œâ”€â”€ repository.ts           # Domain-facing football repository
+â”‚   â”‚   â”œâ”€â”€ seasonResolver.ts       # Dynamic season resolution and plan detection
+â”‚   â”‚   â”œâ”€â”€ dto/                    # API-Football JSON schema interfaces
+â”‚   â”‚   â”œâ”€â”€ mappers/                # Transform DTOs into domain models
+â”‚   â”‚   â””â”€â”€ services/               # Specialized API service modules
+â”‚   â”œâ”€â”€ format/                     # Date, time, and score formatting utilities
+â”‚   â”œâ”€â”€ notifications/              # Local notification handler and reminder scheduling
+â”‚   â”œâ”€â”€ query/                      # React Query client, persistence, and NetInfo sync
+â”‚   â””â”€â”€ storage/                    # AsyncStorage wrapper for Zustand middleware
+â”œâ”€â”€ store/                          # Zustand client-state stores
+â”‚   â”œâ”€â”€ useFavoritesStore.ts        # Pinned teams, leagues, and matches
+â”‚   â”œâ”€â”€ useInboxStore.ts            # Notification history records
+â”‚   â”œâ”€â”€ usePreferencesStore.ts      # Data Saver, polling toggles, time formats
+â”‚   â”œâ”€â”€ useRemindersStore.ts        # Scheduled match kickoff reminders
+â”‚   â””â”€â”€ useSearchHistoryStore.ts    # Recent search queries
+â”œâ”€â”€ theme/                          # Unified design system tokens
+â”‚   â”œâ”€â”€ colors.js                   # Color palette (single source of truth)
+â”‚   â”œâ”€â”€ radius.js                   # Border radius tokens
+â”‚   â”œâ”€â”€ spacing.js                  # Spacing and layout tokens
+â”‚   â”œâ”€â”€ typography.js               # Font weights and sizes
+â”‚   â””â”€â”€ index.ts                    # TypeScript theme re-exports
+â”œâ”€â”€ types/
+â”‚   â””â”€â”€ football.ts                 # Domain models (Match, Team, Player, Competition)
+â”œâ”€â”€ app.json                        # Expo application manifest
+â”œâ”€â”€ package.json                    # Project dependencies and npm scripts
+â””â”€â”€ tsconfig.json                   # TypeScript configuration
 ```
 
 ---
@@ -734,6 +734,7 @@ matchpulse/
 | **Live Match Polling (P5)** | Verified | 30s detail polling, 120s empty-list discovery polling; focus-aware, halts on background. |
 | **Offline Persistence (P6)** | Verified | React Query cache persisted to `AsyncStorage`; cold launch hydrates in <1s; verified via ADB. |
 | **Football News Engine (P7)** | Verified | Full architecture (DTO, mapper, service, repo, hook, UI); graceful empty/retry state on Free tier. |
+| **GNews Proxy Migration (P9)** | Implemented | Cloudflare Worker proxy (`services/news-proxy/`) replaces API-Football `/news`; GNews Free tier; 30-min Cloudflare cache; key never in client bundle. |
 
 ### Provider Plan Constraints
 
@@ -741,7 +742,7 @@ MatchPulse is fully configured to operate under API-Football's **Free Tier Plan*
 
 1. **Daily Request Quota**: Limited to **100 requests/day**. MatchPulse manages this via aggressive cache durations (up to 12 hours for static entities) and smart retry suppression.
 2. **Season Limitations**: Free accounts do not have access to real-time 2025/2026 season data on certain endpoints. The dynamic season resolver automatically falls back to the most recent accessible season (e.g., 2024) to keep player profiles and standings operational.
-3. **News Endpoint (`/news`)**: Restricted by API-Football to paid tiers. MatchPulse includes the complete architectural implementation and displays a clean, graceful fallback state on Free tier accounts.
+3. **News Provider**: Football news is served via a self-hosted Cloudflare Worker proxy (`services/news-proxy/`) that queries the GNews Free tier. Articles may be delayed up to ~1 hour. The proxy must be deployed and `EXPO_PUBLIC_NEWS_PROXY_URL` set for news to load; without it, the app shows a neutral placeholder.
 
 ---
 

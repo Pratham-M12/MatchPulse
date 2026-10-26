@@ -2,7 +2,7 @@
 import { mapLineup, mapSearchLeague, mapSquadPlayer, mapStandings, mapTeamInfo, mapTopScorer, mapPlayerProfile } from '@/lib/api/mappers/mapExtra';
 import { mapFixtureToMatch, mapFixturesToMatches } from '@/lib/api/mappers/mapFixture';
 import { mapStatisticsToMatchStats } from '@/lib/api/mappers/mapStatistics';
-import { mapNewsArticles } from '@/lib/api/mappers/mapNews';
+import { mapProxyArticles } from '@/lib/api/mappers/mapNews';
 import { fetchFootballNews } from '@/lib/api/services/newsService';
 
 import {
@@ -142,6 +142,6 @@ export const footballRepository = {
 
   async news(): Promise<NewsItem[]> {
     const data = await fetchFootballNews();
-    return mapNewsArticles(data.response);
+    return mapProxyArticles(data.articles);
   },
 };

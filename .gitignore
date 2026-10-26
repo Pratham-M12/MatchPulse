@@ -34,6 +34,12 @@ yarn-error.*
 .env
 .env*.local
 
+# Cloudflare Worker local secrets & cache
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+
 # typescript
 *.tsbuildinfo
 

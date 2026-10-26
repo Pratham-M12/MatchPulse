@@ -1,0 +1,7 @@
+name = "matchpulse-news-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Production secrets must be set with:
+#   npx wrangler secret put GNEWS_API_KEY
+# Local development secrets go in .dev.vars (never committed)
