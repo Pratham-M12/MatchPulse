@@ -157,19 +157,31 @@ MatchPulse is a modern, high-performance mobile football companion application e
 - **Background Protection**: `refetchIntervalInBackground: false` halts all network polling when the user switches to another mobile app.
 - **Data Saver Integration**: Automatically disabled when Data Saver mode is active.
 
-### 12. Football News Architecture & Provider Plan State
-- **Clean Architecture Implementation**: Complete end-to-end integration featuring:
-  - DTO schema: `ApiNewsResponse`, `ApiNewsArticleDto` (`lib/api/dto/newsDto.ts`)
-  - Domain model: `NewsArticle` (`types/football.ts`)
-  - Mapper layer: `mapNewsArticle` (`lib/api/mappers/mapNews.ts`)
-  - Service layer: `fetchFootballNews()` (`lib/api/services/newsService.ts`)
-  - Repository layer: `footballRepository.news()` (`lib/api/repository.ts`)
+### 12. Football News Architecture (GNews Proxy — P9)
+
+MatchPulse fetches football news through a self-hosted **Cloudflare Worker proxy** that
+queries the [GNews Free tier](https://gnews.io/) and shields the API key from the client bundle.
+
+- **Proxy service**: `services/news-proxy/` (independent from the Expo runtime)
+  - Endpoints: `GET /health` · `GET /api/news`
+  - Fixed upstream query: `q=football OR soccer&lang=en&max=10&sortby=publishedAt`
+  - Cloudflare Response Cache: 30-minute TTL — conserves GNews Free quota (100 req/day)
+  - Secret handling: `GNEWS_API_KEY` stored as a Cloudflare Worker secret; never in app bundle, URL, log, or committed file
+- **Mobile app integration**:
+  - DTO: `ProxyNormalizedArticle`, `ProxyNewsResponse` (`lib/api/dto/newsDto.ts`)
+  - Mapper: `mapProxyArticles()` (`lib/api/mappers/mapNews.ts`)
+  - Service: `fetchFootballNews()` (`lib/api/services/newsService.ts`) — uses `fetch()` (no Axios)
+  - Repository: `footballRepository.news()` → same hook/UI as before
   - Hook: `useFootballNews(limit)` (`hooks/useFootballNews.ts`)
-  - UI: `HomeNewsSection` with `NewsCard` components (`components/home/`)
-- **Graceful Error Handling**: Full UI states for loading skeletons, empty responses, network errors, and retry actions.
-- **Provider Status / Limitation**:
-  > [!IMPORTANT]
-  > The API-Football `/news` endpoint is restricted by the provider to paid subscription tiers. Under the standard Free tier account (100 requests/day), API-Football returns an endpoint restriction / empty response. MatchPulse detects this via `UnsupportedEndpointError` / `QuotaExceededError` and renders an informative empty card (`"Football news is currently unavailable."`) with a manual retry button. MatchPulse **does not fabricate fake news** when the provider endpoint is restricted.
+  - UI: `HomeNewsSection` + `NewsCard` — unchanged
+- **Configuration**: Set `EXPO_PUBLIC_NEWS_PROXY_URL` in `.env` to the deployed Worker URL.
+  If unset, `UnsupportedEndpointError` is thrown and the UI shows a neutral placeholder — no crash, no fabricated data.
+- **GNews Free Plan Limits** (as documented):
+  - 100 requests per day; up to 10 articles per request
+  - Articles are subject to a **12-hour publication delay** relative to their original publication time
+  - 30 days of historical data
+  - Daily quota exhaustion returns HTTP 403 from GNews; the proxy converts this to HTTP 429 for the client so `QuotaExceededError` is raised correctly
+- **Graceful Error Handling**: Full UI states for loading skeletons, proxy-not-configured, rate-limiting (429), authentication failure (502), and network errors, each with a retry button.
 
 ---
 
@@ -742,7 +754,7 @@ MatchPulse is fully configured to operate under API-Football's **Free Tier Plan*
 
 1. **Daily Request Quota**: Limited to **100 requests/day**. MatchPulse manages this via aggressive cache durations (up to 12 hours for static entities) and smart retry suppression.
 2. **Season Limitations**: Free accounts do not have access to real-time 2025/2026 season data on certain endpoints. The dynamic season resolver automatically falls back to the most recent accessible season (e.g., 2024) to keep player profiles and standings operational.
-3. **News Provider**: Football news is served via a self-hosted Cloudflare Worker proxy (`services/news-proxy/`) that queries the GNews Free tier. Articles may be delayed up to ~1 hour. The proxy must be deployed and `EXPO_PUBLIC_NEWS_PROXY_URL` set for news to load; without it, the app shows a neutral placeholder.
+3. **News Provider**: Football news is served via a self-hosted Cloudflare Worker proxy (`services/news-proxy/`) that queries the GNews Free tier. GNews Free plan articles carry a **12-hour publication delay** and are capped at 100 requests/day and 10 articles per request. The proxy must be deployed and `EXPO_PUBLIC_NEWS_PROXY_URL` set for news to load; without it, the app shows a neutral placeholder.
 
 ---
 

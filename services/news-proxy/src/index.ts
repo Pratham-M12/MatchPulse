@@ -12,6 +12,46 @@ export function corsHeaders(): HeadersInit {
   };
 }
 
+/**
+ * Inspects a GNews HTTP 403 response body to determine whether it signals
+ * daily quota exhaustion rather than another forbidden-account condition.
+ *
+ * GNews documents HTTP 403 for a daily quota exhaustion or an unverified
+ * account email. This helper reads and scans the raw response text for
+ * quota-related keywords; it does not parse structured JSON properties.
+ *
+ * If the body is unreadable or has no quota signal, the caller treats it as a
+ * generic upstream authentication/configuration failure.
+ *
+ * @returns true  → upstream 403 is quota exhaustion → proxy should emit 429
+ * @returns false → upstream 403 is an auth or other error → proxy emits 502
+ */
+export async function isGNewsQuotaExhausted(res: Response): Promise<boolean> {
+  let bodyText: string;
+  try {
+    bodyText = await res.text();
+  } catch {
+    return false;
+  }
+  if (!bodyText.trim()) return false;
+
+  const lower = bodyText.toLowerCase();
+  // GNews quota messages contain quota-related terms such as "limit",
+  // "quota", "exceeded", or "plan".
+  const quotaKeywords = ['limit', 'quota', 'exceeded', 'plan'];
+  const authKeywords = ['token', 'unauthorized', 'invalid', 'forbidden'];
+
+  const hasQuota = quotaKeywords.some((kw) => lower.includes(kw));
+  const hasAuth = authKeywords.some((kw) => lower.includes(kw));
+
+  // A quota signal takes precedence when a body contains mixed terminology.
+  if (hasAuth && !hasQuota) return false;
+  if (hasQuota) return true;
+
+  // Neither signal: treat as auth failure (conservative default)
+  return false;
+}
+
 export async function handleRequest(
   request: Request,
   env: Env,
@@ -141,8 +181,44 @@ export async function handleRequest(
       );
     }
 
-    // Handle upstream authentication errors (401/403) without leaking keys
-    if (upstreamRes.status === 401 || upstreamRes.status === 403) {
+    // Handle upstream HTTP 403.
+    //
+    // GNews uses HTTP 403 for TWO distinct cases:
+    //   a) Daily request quota exhausted  →  proxy returns 429 to client
+    //   b) Account email unverified      →  proxy returns 502 to client
+    //
+    // We inspect the response body text to distinguish them.
+    // The raw body is consumed here and is NEVER forwarded to the client.
+    if (upstreamRes.status === 403) {
+      const quotaExhausted = await isGNewsQuotaExhausted(upstreamRes);
+      if (quotaExhausted) {
+        return new Response(
+          JSON.stringify({ error: 'Upstream news request limit reached' }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-store',
+              ...corsHeaders(),
+            },
+          }
+        );
+      }
+      return new Response(
+        JSON.stringify({ error: 'Upstream authentication failed' }),
+        {
+          status: 502,
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+            ...corsHeaders(),
+          },
+        }
+      );
+    }
+
+    // Handle upstream HTTP 401 without leaking keys
+    if (upstreamRes.status === 401) {
       return new Response(
         JSON.stringify({ error: 'Upstream authentication failed' }),
         {
@@ -208,7 +284,7 @@ export async function handleRequest(
       'Content-Type': 'application/json',
       'Cache-Control': `public, max-age=${CACHE_MAX_AGE_SECONDS}, s-maxage=${CACHE_MAX_AGE_SECONDS}`,
       'X-Cache': 'MISS',
-      ...corsHeaders(),
+      ...corsHeaders() as Record<string, string>,
     };
 
     const response = new Response(responseBody, {
