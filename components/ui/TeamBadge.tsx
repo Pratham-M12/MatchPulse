@@ -12,16 +12,18 @@ type TeamBadgeProps = {
   size?: number;
   /** Use the short name (e.g. "MCI") instead of the full name. */
   useShortName?: boolean;
+  /** Hide the crest when its labelled parent already conveys the team. */
+  decorativeLogo?: boolean;
 };
 
 /**
  * A team's logo paired with its name. `align="right"` flips the order so
  * an away team's badge can mirror a home team's badge in a row layout.
  */
-export function TeamBadge({ team, align = 'left', size = 28, useShortName = false }: TeamBadgeProps) {
+export function TeamBadge({ team, align = 'left', size = 28, useShortName = false, decorativeLogo = false }: TeamBadgeProps) {
   const label = useShortName ? team.shortName : team.name;
 
-  const logo = <TeamLogo team={team} size={size} />;
+  const logo = <TeamLogo team={team} size={size} decorative={decorativeLogo} />;
   const name = (
     <Typography variant="body" numberOfLines={1} style={{ flexShrink: 1 }}>
       {label}

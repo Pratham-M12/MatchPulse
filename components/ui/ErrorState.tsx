@@ -24,12 +24,15 @@ export function ErrorState({ message = 'Unable to load data.', onRetry }: ErrorS
           accessibilityRole="button"
           accessibilityLabel="Try again"
           style={({ pressed }) => ({
+            minHeight: 44,
             paddingHorizontal: spacing.md,
             paddingVertical: spacing.sm,
             backgroundColor: colors.primarySubtle,
             borderRadius: radius.pill,
             borderWidth: 1,
             borderColor: colors.primaryMuted,
+            alignItems: 'center',
+            justifyContent: 'center',
             opacity: pressed ? 0.8 : 1,
           })}
         >

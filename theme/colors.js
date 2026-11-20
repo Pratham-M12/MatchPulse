@@ -12,33 +12,33 @@
  */
 module.exports = {
   // Base surfaces
-  background: '#0B0D12',
-  surface: '#151923',
-  surfaceElevated: '#1C2230',
-  surfaceHighlight: '#232A3A',
+  background: '#090B10',
+  surface: '#121720',
+  surfaceElevated: '#1A2130',
+  surfaceHighlight: '#252E3D',
 
   // Brand / accent
-  primary: '#00E676',
-  primaryMuted: '#0F3D2A',
-  primarySubtle: 'rgba(0, 230, 118, 0.10)',
+  primary: '#B9F227',
+  primaryMuted: '#2C4210',
+  primarySubtle: 'rgba(185, 242, 39, 0.12)',
 
   // Text
-  textPrimary: '#FFFFFF',
-  textSecondary: '#B0B3B8',
-  textDisabled: '#5C6070',
+  textPrimary: '#F7F8FA',
+  textSecondary: '#AAB3C2',
+  textDisabled: '#6E788A',
 
   // Status
-  live: '#FF4D4D',
-  liveMuted: 'rgba(255, 77, 77, 0.12)',
-  win: '#00E676',
-  warning: '#F7B955',
-  loss: '#FF4D4D',
-  draw: '#B0B3B8',
+  live: '#FF5B61',
+  liveMuted: 'rgba(255, 91, 97, 0.14)',
+  win: '#8DDB69',
+  warning: '#F4BC62',
+  loss: '#FF5B61',
+  draw: '#AAB3C2',
 
   // Structure
-  divider: '#252936',
-  border: '#343A4A',
-  overlay: 'rgba(11, 13, 18, 0.72)',
+  divider: '#2A3342',
+  border: '#3A4658',
+  overlay: 'rgba(9, 11, 16, 0.78)',
 
   transparent: 'transparent',
 };

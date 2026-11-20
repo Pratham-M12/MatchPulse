@@ -9,9 +9,11 @@ type FilterChipProps = {
   selected?: boolean;
   onPress: () => void;
   compact?: boolean;
+  /** Optional visible target height for dense, touch-first filter rails. */
+  minHeight?: number;
 };
 
-export function FilterChip({ label, selected = false, onPress, compact = false }: FilterChipProps) {
+export function FilterChip({ label, selected = false, onPress, compact = false, minHeight }: FilterChipProps) {
   return (
     <Pressable
       onPress={() => {
@@ -25,7 +27,7 @@ export function FilterChip({ label, selected = false, onPress, compact = false }
       {({ pressed }) => (
         <View
           style={{
-            minHeight: compact ? 32 : 36,
+            minHeight: minHeight ?? (compact ? 32 : 36),
             minWidth: 44,
             paddingHorizontal: compact ? spacing.sm : spacing.md,
             flexDirection: 'row',

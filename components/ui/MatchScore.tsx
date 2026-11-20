@@ -10,11 +10,19 @@ type MatchScoreProps = {
   homeScore?: number;
   awayScore?: number;
   status: MatchStatus;
+  emphasis?: 'default' | 'hero' | 'heroCompact';
 };
 
-export function MatchScore({ homeScore, awayScore, status }: MatchScoreProps) {
+export function MatchScore({ homeScore, awayScore, status, emphasis = 'default' }: MatchScoreProps) {
   const hasScore = status === 'live' || status === 'finished';
   const scale = useSharedValue(1);
+  const scoreStyle =
+    emphasis === 'hero'
+      ? { fontSize: 36, lineHeight: 42, letterSpacing: -1 }
+      : emphasis === 'heroCompact'
+        ? { fontSize: 30, lineHeight: 36, letterSpacing: -0.8 }
+      : undefined;
+  const scoreGap = emphasis === 'heroCompact' ? spacing.xs : spacing.sm;
 
   useEffect(() => {
     if (!hasScore) return;
@@ -33,12 +41,12 @@ export function MatchScore({ homeScore, awayScore, status }: MatchScoreProps) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <Typography variant="score">{homeScore ?? 0}</Typography>
-        <Typography variant="score" color="textSecondary">
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scoreGap }}>
+        <Typography variant="score" style={scoreStyle}>{homeScore ?? 0}</Typography>
+        <Typography variant="score" color="textSecondary" style={scoreStyle}>
           -
         </Typography>
-        <Typography variant="score">{awayScore ?? 0}</Typography>
+        <Typography variant="score" style={scoreStyle}>{awayScore ?? 0}</Typography>
       </View>
     </Animated.View>
   );

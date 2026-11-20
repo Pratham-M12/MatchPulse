@@ -8,9 +8,10 @@ type SegmentedControlProps = {
   options: Array<{ id: string; label: string; live?: boolean }>;
   value: string;
   onChange: (id: string) => void;
+  minHeight?: number;
 };
 
-export function SegmentedControl({ options, value, onChange }: SegmentedControlProps) {
+export function SegmentedControl({ options, value, onChange, minHeight = 42 }: SegmentedControlProps) {
   return (
     <View
       accessibilityRole="tablist"
@@ -45,7 +46,7 @@ export function SegmentedControl({ options, value, onChange }: SegmentedControlP
               accessibilityLabel={option.label}
               style={({ pressed }) => ({
                 width: '100%',
-                minHeight: 42,
+                minHeight,
                 paddingHorizontal: 4,
                 borderRadius: radius.md,
                 alignItems: 'center',

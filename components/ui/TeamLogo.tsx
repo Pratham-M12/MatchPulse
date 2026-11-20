@@ -9,6 +9,8 @@ type TeamLogoProps = {
   team: Team;
   /** Diameter in pixels. Defaults to 32. */
   size?: number;
+  /** Hide the crest when its labelled parent already conveys the team. */
+  decorative?: boolean;
 };
 
 /**
@@ -16,7 +18,7 @@ type TeamLogoProps = {
  * falls back to a colored circle with the team's initials, so this
  * component works identically once real API logos are wired in.
  */
-export function TeamLogo({ team, size = 32 }: TeamLogoProps) {
+export function TeamLogo({ team, size = 32, decorative = false }: TeamLogoProps) {
   const [hasImageError, setHasImageError] = useState(false);
 
   if (team.logoUrl && !hasImageError) {
@@ -25,7 +27,8 @@ export function TeamLogo({ team, size = 32 }: TeamLogoProps) {
         source={{ uri: team.logoUrl }}
         style={{ width: size, height: size, borderRadius: size / 2 }}
         resizeMode="contain"
-        accessibilityLabel={`${team.name} logo`}
+        accessible={!decorative}
+        accessibilityLabel={decorative ? undefined : `${team.name} logo`}
         onError={() => setHasImageError(true)}
       />
     );
@@ -35,7 +38,8 @@ export function TeamLogo({ team, size = 32 }: TeamLogoProps) {
 
   return (
     <View
-      accessibilityLabel={`${team.name} logo`}
+      accessible={!decorative}
+      accessibilityLabel={decorative ? undefined : `${team.name} logo`}
       style={{
         width: size,
         height: size,

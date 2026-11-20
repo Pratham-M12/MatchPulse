@@ -8,6 +8,8 @@ import { colors, spacing } from '@/theme';
 type ScreenHeaderProps = {
   title: string;
   onBack?: () => void;
+  /** Detail screens can opt into a larger visible back target. */
+  size?: number;
   /** Optional trailing content, e.g. a FavoriteButton. */
   right?: React.ReactNode;
 };
@@ -17,7 +19,7 @@ type ScreenHeaderProps = {
  * Team, League). The root Stack hides its native header (headerShown:
  * false) so every screen controls its own header styling consistently.
  */
-export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
+export function ScreenHeader({ title, onBack, size = 36, right }: ScreenHeaderProps) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
       <Pressable
@@ -26,9 +28,9 @@ export function ScreenHeader({ title, onBack, right }: ScreenHeaderProps) {
         accessibilityRole="button"
         accessibilityLabel="Go back"
         style={({ pressed }) => ({
-          width: 36,
-          height: 36,
-          borderRadius: 18,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
           backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
           borderWidth: 1,
           borderColor: colors.divider,

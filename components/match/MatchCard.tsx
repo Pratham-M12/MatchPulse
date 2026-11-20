@@ -1,9 +1,11 @@
 ﻿import { Ionicons } from '@expo/vector-icons';
-import { Dimensions, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { MatchStatusBadge } from '@/components/ui/MatchStatusBadge';
 import { TeamBadge } from '@/components/ui/TeamBadge';
 import { Typography } from '@/components/ui/Typography';
+import { describeMatchForAccessibility } from '@/lib/format/matchAccessibility';
+import { usePreferencesStore } from '@/store/usePreferencesStore';
 import { colors, radius, spacing } from '@/theme';
 import type { Match } from '@/types/football';
 
@@ -14,8 +16,7 @@ type MatchCardProps = {
   showNavigationAffordance?: boolean;
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_WIDTH = Math.min(280, Math.max(235, SCREEN_WIDTH - 72));
+const COMPACT_CARD_WIDTH = 280;
 
 export function MatchCard({
   match,
@@ -23,15 +24,17 @@ export function MatchCard({
   fullWidth = false,
   showNavigationAffordance = false,
 }: MatchCardProps) {
+  const timeFormat = usePreferencesStore((state) => state.timeFormat);
   const { competition, homeTeam, awayTeam, homeScore, awayScore, status } = match;
   const isLive = status === 'live';
+  const accentColor = homeTeam.color ?? awayTeam.color ?? colors.primary;
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${homeTeam.name} versus ${awayTeam.name}`}
-      style={{ width: fullWidth ? '100%' : CARD_WIDTH }}
+      accessibilityLabel={describeMatchForAccessibility(match, timeFormat)}
+      style={{ width: fullWidth ? '100%' : COMPACT_CARD_WIDTH, maxWidth: '100%', flexShrink: 1 }}
     >
       {({ pressed }) => (
         <View
@@ -40,32 +43,35 @@ export function MatchCard({
             backgroundColor: colors.surface,
             borderRadius: radius.lg,
             borderWidth: 1,
-            borderColor: isLive ? colors.live : colors.border,
-            padding: spacing.base,
+            borderColor: isLive ? colors.liveMuted : colors.divider,
+            padding: spacing.md,
             opacity: pressed ? 0.92 : 1,
             transform: [{ scale: pressed ? 0.985 : 1 }],
+            overflow: 'hidden',
           }}
         >
+          {isLive ? (
+            <View
+              pointerEvents="none"
+              style={{ position: 'absolute', top: spacing.md, bottom: spacing.md, left: 0, width: 3, backgroundColor: colors.live }}
+            />
+          ) : null}
           {/* HEADER */}
           <View
             style={{
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: spacing.md,
+              gap: spacing.sm,
+              marginBottom: spacing.sm,
             }}
           >
-            <Typography
-              variant="overline"
-              color="textSecondary"
-              numberOfLines={1}
-              style={{
-                flex: 1,
-                marginRight: spacing.sm,
-              }}
-            >
-              {competition.shortName ?? competition.name}
-            </Typography>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flex: 1, minWidth: 0 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: accentColor, flexShrink: 0 }} />
+              <Typography variant="overline" color="textSecondary" numberOfLines={1} style={{ flex: 1 }}>
+                {competition.shortName ?? competition.name}
+              </Typography>
+            </View>
 
             <MatchStatusBadge match={match} />
           </View>
@@ -75,7 +81,7 @@ export function MatchCard({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              minHeight: 40,
+              minHeight: 38,
             }}
           >
             <View
@@ -87,15 +93,17 @@ export function MatchCard({
             >
               <TeamBadge
                 team={homeTeam}
-                size={30}
+                size={32}
                 useShortName={false}
+                decorativeLogo
               />
             </View>
 
             <Typography
               variant="score"
+              color={isLive || homeScore !== undefined ? 'textPrimary' : 'textSecondary'}
               style={{
-                minWidth: 28,
+                minWidth: 32,
                 textAlign: 'right',
               }}
             >
@@ -109,7 +117,7 @@ export function MatchCard({
               height: 1,
               backgroundColor: colors.divider,
               opacity: 0.6,
-              marginVertical: spacing.sm,
+              marginVertical: spacing.xs + 2,
             }}
           />
 
@@ -118,7 +126,7 @@ export function MatchCard({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              minHeight: 40,
+              minHeight: 38,
             }}
           >
             <View
@@ -130,16 +138,17 @@ export function MatchCard({
             >
               <TeamBadge
                 team={awayTeam}
-                size={30}
+                size={32}
                 useShortName={false}
+                decorativeLogo
               />
             </View>
 
             <Typography
               variant="score"
-              color={isLive ? 'textPrimary' : 'textSecondary'}
+              color={isLive || awayScore !== undefined ? 'textPrimary' : 'textSecondary'}
               style={{
-                minWidth: 28,
+                minWidth: 32,
                 textAlign: 'right',
               }}
             >
@@ -153,25 +162,23 @@ export function MatchCard({
               style={{
                 flexDirection: 'row',
                 justifyContent: 'flex-end',
-                marginTop: spacing.md,
+                marginTop: spacing.sm,
               }}
             >
               <View
                 style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 15,
-                  backgroundColor: isLive
-                    ? colors.primarySubtle
-                    : colors.background,
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  backgroundColor: colors.surfaceHighlight,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
                 <Ionicons
-                  name="arrow-forward"
-                  size={16}
-                  color={isLive ? colors.primary : colors.textSecondary}
+                  name="chevron-forward"
+                  size={17}
+                  color={isLive ? colors.live : colors.textSecondary}
                 />
               </View>
             </View>
