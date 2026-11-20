@@ -1,0 +1,24 @@
+name = "matchpulse-football-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Production secret (never commit its value):
+# npx wrangler secret put API_FOOTBALL_KEY
+# Local development secrets belong in .dev.vars (never committed).
+
+# A single Durable Object instance provides the strict account-wide daily
+# upstream-call budget. The SQLite storage backend is selected by new_sqlite_classes.
+[[durable_objects.bindings]]
+name = "DAILY_BUDGET"
+class_name = "DailyBudget"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["DailyBudget"]
+
+# This approximate, per-data-center limiter is an additional abuse control only.
+# It is intentionally not used as the account-wide daily quota authority.
+[[ratelimits]]
+name = "EDGE_RATE_LIMITER"
+namespace_id = "2611171701"
+simple = { limit = 120, period = 60 }

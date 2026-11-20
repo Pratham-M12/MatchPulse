@@ -1,0 +1,6 @@
+# Local-only development value. Copy to .dev.vars and set a real key locally.
+# Never commit .dev.vars or place this value in the Expo application.
+API_FOOTBALL_KEY=
+
+# Optional: lower only for local budget tests. Production defaults to 80.
+# DAILY_UPSTREAM_BUDGET=80
