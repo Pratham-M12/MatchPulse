@@ -20,11 +20,12 @@ import type {
 } from '@/types/football';
 
 export function mapPosition(value?: string | null): Player['position'] {
+  if (!value || value.trim().length === 0) return undefined;
   if (value === 'Goalkeeper' || value === 'G') return 'Goalkeeper';
   if (value === 'Defender' || value === 'D') return 'Defender';
   if (value === 'Midfielder' || value === 'M') return 'Midfielder';
   if (value === 'Attacker' || value === 'Forward' || value === 'F') return 'Forward';
-  return value ?? 'Midfielder';
+  return value;
 }
 
 export function mapStandings(response: ApiStandingsResponse): LeagueTable | null {

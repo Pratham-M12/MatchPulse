@@ -18,7 +18,7 @@ function isApiEntityId(id: string) {
 export function useTeamPage(teamId: string) {
   const localTeam = getTeamById(teamId);
   const useApi = isApiEntityId(teamId);
-  const { data: season, isLoading: isSeasonLoading } = useTeamSeason(teamId);
+  const { data: season, isLoading: isSeasonLoading, isFetching: isSeasonFetching } = useTeamSeason(teamId);
 
   const teamQuery = useQuery({
     queryKey: queryKeys.team(teamId),
@@ -74,6 +74,29 @@ export function useTeamPage(teamId: string) {
     losses: form.filter((item) => item === 'L').length || undefined,
   };
 
+  const fixtureState = {
+    isLoading: useApi && (isSeasonLoading || fixturesQuery.isLoading),
+    isFetching: useApi && (isSeasonFetching || fixturesQuery.isFetching),
+    isError: fixturesQuery.isError,
+    isUnavailable: isUnsupportedEndpoint(fixturesQuery.error),
+    hasData: fixturesQuery.data !== undefined,
+  };
+  const squadState = {
+    isLoading: useApi && squadQuery.isLoading,
+    isFetching: useApi && squadQuery.isFetching,
+    isError: squadQuery.isError,
+    isUnavailable: isUnsupportedEndpoint(squadQuery.error),
+    hasData: squadQuery.data !== undefined,
+  };
+  const teamState = {
+    isLoading: useApi && teamQuery.isLoading,
+    isError: useApi && teamQuery.isError && !teamQuery.data,
+    // The repository returns undefined only for a successful empty team response.
+    // Request failures remain errors so the screen can offer a retry action.
+    isNotFound: useApi ? teamQuery.isSuccess && !teamQuery.data : !localTeam,
+    hasData: Boolean(team),
+  };
+
   return {
     team,
     matches,
@@ -82,10 +105,16 @@ export function useTeamPage(teamId: string) {
     form,
     squad,
     stats,
+    fixtureState,
+    // Fixtures and results are derived from the same provider query.
+    resultState: fixtureState,
+    squadState,
+    teamState,
     isLoading: useApi && (teamQuery.isLoading || isSeasonLoading || fixturesQuery.isLoading),
     isError: useApi && teamQuery.isError && !teamQuery.data,
     squadUnavailable: isUnsupportedEndpoint(squadQuery.error),
     season: season ?? getCurrentSeason(),
+    refetchTeam: () => teamQuery.refetch(),
     refetch: () => Promise.all([teamQuery.refetch(), fixturesQuery.refetch(), squadQuery.refetch()]),
   };
 }

@@ -164,7 +164,7 @@ export type Player = {
   id: string;
   name: string;
   teamId: string;
-  position: 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Forward' | string;
+  position?: string;
   number: number;
   nationality: string;
   age: number;
