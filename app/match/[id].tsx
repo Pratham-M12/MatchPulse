@@ -5,6 +5,8 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, View } from '
 
 import { MatchStatsList } from '@/components/match/MatchStatsList';
 import { MatchTimeline } from '@/components/match/MatchTimeline';
+import { MatchLineupCard } from '@/components/match/MatchLineupCard';
+import { MatchStandingsTable } from '@/components/match/MatchStandingsTable';
 import { AppScreen } from '@/components/layout/AppScreen';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { EntityTabs } from '@/components/entity/EntityPrimitives';
@@ -20,7 +22,7 @@ import { useFixtureDetails } from '@/hooks/useFixtureDetails';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { useStandings } from '@/hooks/useStandings';
 import { insightsForMatch } from '@/lib/football/insights';
-import { formatCountdown, formatKickoffShort, formatLastUpdated } from '@/lib/format/datetime';
+import { formatCountdown, formatKickoffShort, formatKickoffTime, formatLastUpdated, formatMatchDay, formatMatchStatus } from '@/lib/format/datetime';
 import { cancelMatchReminder, scheduleMatchReminder } from '@/lib/notifications/reminders';
 import { shareMatch } from '@/lib/shareMatch';
 import { useFavoritesStore, useIsFavoriteMatch } from '@/store/useFavoritesStore';
@@ -29,19 +31,35 @@ import { useHasReminder } from '@/store/useRemindersStore';
 import { colors, radius, spacing } from '@/theme';
 import type { Match, Team } from '@/types/football';
 
-function TeamColumn({ team, onPress }: { team: Team; onPress: () => void }) {
+function TeamColumn({ team, onPress, compact }: { team: Team; onPress: () => void; compact: boolean }) {
+  const crestSize = compact ? 52 : 64;
+  const crestWellSize = crestSize + (compact ? 12 : 16);
+
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Open ${team.name}`}
-      style={{ flex: 1, alignItems: 'center', gap: spacing.xs }}
+      style={({ pressed }) => ({ flex: 1, minWidth: 0, alignItems: 'center', gap: spacing.sm, opacity: pressed ? 0.82 : 1 })}
     >
-      <TeamLogo team={team} size={56} />
+      <View
+        style={{
+          width: crestWellSize,
+          height: crestWellSize,
+          borderRadius: crestWellSize / 2,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.divider,
+        }}
+      >
+        <TeamLogo team={team} size={crestSize} decorative />
+      </View>
       <Typography
         variant="title"
         numberOfLines={2}
-        style={{ textAlign: 'center', marginTop: spacing.xs }}
+        style={{ width: '100%', textAlign: 'center' }}
       >
         {team.name || team.shortName}
       </Typography>
@@ -55,7 +73,7 @@ export default function MatchDetailsScreen() {
   const online = useIsOnline();
   const timeFormat = usePreferencesStore((state) => state.timeFormat);
   const detailsState = useFixtureDetails(id);
-  const { match, details, isLoading, isError, refetch, lineups, prediction, lineupsUnavailable, predictionUnavailable } = detailsState;
+  const { match, details, isLoading, isError, refetch, lineups, prediction, lineupsUnavailable, statsUnavailable, predictionUnavailable } = detailsState;
   const favorite = useIsFavoriteMatch(id);
   const toggleFavoriteMatch = useFavoritesStore((state) => state.toggleFavoriteMatch);
   const reminded = useHasReminder(id);
@@ -76,11 +94,11 @@ export default function MatchDetailsScreen() {
     if (!match) return [];
     const next = ['OVERVIEW'];
     if (details?.events?.length) next.push('TIMELINE');
-    if (details?.stats) next.push('STATS');
-    if (lineups.length) next.push('LINEUPS');
-    if (standings.data?.rows.length) next.push('TABLE');
+    if (details?.stats || statsUnavailable) next.push('STATS');
+    if (lineups.length || lineupsUnavailable) next.push('LINEUPS');
+    if (standings.data?.rows.length || standings.unavailable) next.push('TABLE');
     return next;
-  }, [details?.events?.length, details?.stats, lineups.length, match, standings.data?.rows.length]);
+  }, [details?.events?.length, details?.stats, lineups.length, lineupsUnavailable, match, standings.data?.rows.length, standings.unavailable, statsUnavailable]);
 
   if (isLoading) {
     return (
@@ -125,11 +143,12 @@ export default function MatchDetailsScreen() {
         contentContainerStyle={{ padding: spacing.base, gap: spacing.lg, paddingBottom: spacing['4xl'] }}
       >
         <ScreenHeader
-          title={match.competition.name}
+          title="Match Centre"
+          size={44}
           right={
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <HeaderIcon icon="share-outline" label="Share match" onPress={() => shareMatch(match, timeFormat)} />
-              <FavoriteButton favorited={favorite} onToggle={() => toggleFavoriteMatch(match)} />
+              <HeaderIcon icon="share-outline" label="Share match" size={44} onPress={() => shareMatch(match, timeFormat)} />
+              <FavoriteButton favorited={favorite} onToggle={() => toggleFavoriteMatch(match)} size={30} />
             </View>
           }
         />
@@ -146,7 +165,7 @@ export default function MatchDetailsScreen() {
           </View>
         ) : null}
 
-        {tabs.length > 1 ? <EntityTabs tabs={tabs} selected={tab} onSelect={setTab} /> : null}
+        {tabs.length > 1 ? <EntityTabs tabs={tabs} selected={tab} onSelect={setTab} minHeight={44} /> : null}
 
         {tab === 'OVERVIEW' ? (
           <View style={{ gap: spacing.lg }}>
@@ -165,13 +184,7 @@ export default function MatchDetailsScreen() {
               {match.status === 'scheduled' ? <MetaRow label="Starts" value={formatCountdown(match.kickoff)} /> : null}
               <MetaRow
                 label="Status"
-                value={
-                  match.status === 'live'
-                    ? `Live (${match.minute}')`
-                    : match.status === 'finished'
-                    ? 'Full Time'
-                    : 'Upcoming'
-                }
+                value={formatOverviewStatus(match, timeFormat)}
               />
             </View>
 
@@ -267,7 +280,13 @@ export default function MatchDetailsScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Typography color="textSecondary">No timeline events yet.</Typography>
+                <Typography color="textSecondary" style={{ textAlign: 'center' }}>
+                  {match.status === 'finished'
+                    ? 'No timeline events are available for this finished match.'
+                    : match.status === 'postponed' || match.status === 'cancelled'
+                      ? 'This match has no timeline events.'
+                      : 'No timeline events yet.'}
+                </Typography>
               </View>
             )}
 
@@ -297,18 +316,10 @@ export default function MatchDetailsScreen() {
         ) : null}
 
         {tab === 'STATS' ? (
-          details?.stats ? (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: radius.card,
-                borderWidth: 1,
-                borderColor: colors.divider,
-                padding: spacing.base,
-              }}
-            >
-              <MatchStatsList stats={details.stats} />
-            </View>
+          statsUnavailable ? (
+            <EmptyState title="Statistics unavailable" message="Not included on the current API plan." />
+          ) : details?.stats ? (
+            <MatchStatsList stats={details.stats} match={match} />
           ) : (
             <EmptyState title="Statistics unavailable" message="This endpoint did not return stats for the fixture." />
           )
@@ -320,64 +331,26 @@ export default function MatchDetailsScreen() {
           ) : (
             <View style={{ gap: spacing.xl }}>
               {lineups.map((lineup) => (
-                <View
+                <MatchLineupCard
                   key={lineup.team.id}
-                  style={{
-                    backgroundColor: colors.surface,
-                    borderRadius: radius.card,
-                    borderWidth: 1,
-                    borderColor: colors.divider,
-                    padding: spacing.base,
-                    gap: spacing.sm,
-                  }}
-                >
-                  <Typography variant="title">
-                    {lineup.team.name} {lineup.formation ? `• ${lineup.formation}` : ''}
-                  </Typography>
-                  {lineup.startXI.map((player) => (
-                    <Pressable
-                      key={player.id}
-                      onPress={() => router.push(`/player/${player.id}`)}
-                      style={{ flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.xs }}
-                    >
-                      <Typography color="textSecondary" style={{ width: 28 }}>
-                        {player.number ?? '—'}
-                      </Typography>
-                      <Typography style={{ flex: 1 }}>{player.name}</Typography>
-                      <Typography color="textDisabled">{player.position ?? ''}</Typography>
-                    </Pressable>
-                  ))}
-                </View>
+                  lineup={lineup}
+                  accentColor={lineup.team.id === match.homeTeam.id ? match.homeTeam.color ?? colors.primary : match.awayTeam.color ?? colors.textSecondary}
+                  onPlayerPress={(playerId) => router.push(`/player/${playerId}`)}
+                />
               ))}
             </View>
           )
         ) : null}
 
         {tab === 'TABLE' ? (
-          standings.data ? (
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: radius.card,
-                borderWidth: 1,
-                borderColor: colors.divider,
-                padding: spacing.base,
-                gap: spacing.xs,
-              }}
-            >
-              {standings.data.rows.slice(0, 20).map((row) => (
-                <Pressable
-                  key={row.team.id}
-                  onPress={() => router.push(`/team/${row.team.id}`)}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm }}
-                >
-                  <Typography style={{ width: 24 }} color="textSecondary">{row.rank}</Typography>
-                  <TeamLogo team={row.team} size={22} />
-                  <Typography style={{ flex: 1 }} numberOfLines={1}>{row.team.name}</Typography>
-                  <Typography variant="label">{row.points}</Typography>
-                </Pressable>
-              ))}
-            </View>
+          standings.unavailable ? (
+            <EmptyState title="Table unavailable" message="Standings are not included on the current API plan." />
+          ) : standings.data ? (
+            <MatchStandingsTable
+              table={standings.data}
+              match={match}
+              onTeamPress={(team) => router.push(`/team/${team.id}`)}
+            />
           ) : (
             <EmptyState title="Table unavailable" message="Standings could not be loaded for this competition." />
           )
@@ -388,37 +361,66 @@ export default function MatchDetailsScreen() {
 }
 
 function MatchHero({ match, timeFormat, onTeam }: { match: Match; timeFormat: '12h' | '24h'; onTeam: (team: Team) => void }) {
+  const [heroWidth, setHeroWidth] = useState<number>();
+  const compact = heroWidth !== undefined && heroWidth < 350;
+  const cardPadding = compact ? spacing.base : spacing.xl;
+  const scoreColumnWidth = compact ? 76 : 100;
+  const isHalfTime = match.status === 'live' && match.statusLabel === 'HT';
+  const isScored = match.status === 'live' || match.status === 'finished';
+  const statusLabel =
+    match.status === 'scheduled'
+      ? 'UPCOMING'
+      : match.status === 'finished'
+        ? 'FULL TIME'
+        : match.status === 'postponed'
+          ? 'POSTPONED'
+          : match.status === 'cancelled'
+            ? 'CANCELLED'
+            : undefined;
+
   return (
     <View
+      onLayout={(event) => {
+        const nextWidth = event.nativeEvent.layout.width;
+        setHeroWidth((currentWidth) => currentWidth === nextWidth ? currentWidth : nextWidth);
+      }}
       style={{
-        backgroundColor: colors.surface,
+        backgroundColor: colors.surfaceElevated,
         borderRadius: radius.card,
         borderWidth: 1,
         borderColor: colors.divider,
-        paddingVertical: spacing.lg,
-        paddingHorizontal: spacing.base,
+        padding: cardPadding,
         alignItems: 'center',
-        gap: spacing.md,
+        gap: compact ? spacing.lg : spacing.xl,
+        overflow: 'hidden',
       }}
     >
-      <Typography variant="overline" color="textSecondary" numberOfLines={1}>
-        {match.competition.name.toUpperCase()}
-      </Typography>
+      <View pointerEvents="none" style={{ position: 'absolute', top: -76, right: -52, width: 196, height: 196, borderRadius: 98, backgroundColor: colors.primarySubtle }} />
+      <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: cardPadding, right: cardPadding, height: 2, borderRadius: radius.pill, backgroundColor: match.status === 'live' ? colors.live : colors.primary }} />
 
-      <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+        <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, flexShrink: 0 }} />
+          <Typography variant="overline" color="textSecondary" numberOfLines={1} style={{ flex: 1 }}>
+            {match.competition.name.toUpperCase()}
+          </Typography>
+        </View>
         {match.status === 'live' ? (
-          <LiveIndicator minute={match.minute} style={{ alignSelf: 'center' }} />
+          <View style={{ alignItems: 'flex-end', gap: 2 }}>
+            <LiveIndicator minute={match.minute} />
+            {isHalfTime ? <Typography variant="caption" color="textSecondary">Half-time</Typography> : null}
+          </View>
         ) : (
           <View
             style={{
               paddingHorizontal: spacing.sm,
-              paddingVertical: 3,
+              paddingVertical: 4,
               borderRadius: radius.pill,
-              backgroundColor: colors.surfaceHighlight,
+              backgroundColor: match.status === 'scheduled' ? colors.primarySubtle : colors.surfaceHighlight,
             }}
           >
-            <Typography variant="caption" color="textSecondary">
-              {match.status === 'finished' ? 'Full time' : formatKickoffShort(match.kickoff, timeFormat)}
+            <Typography variant="overline" color={match.status === 'scheduled' ? 'primary' : match.status === 'cancelled' ? 'loss' : match.status === 'postponed' ? 'warning' : 'textSecondary'}>
+              {statusLabel}
             </Typography>
           </View>
         )}
@@ -428,28 +430,40 @@ function MatchHero({ match, timeFormat, onTeam }: { match: Match; timeFormat: '1
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
+          gap: compact ? spacing.sm : spacing.md,
           width: '100%',
           paddingVertical: spacing.xs,
         }}
       >
-        <TeamColumn team={match.homeTeam} onPress={() => onTeam(match.homeTeam)} />
-        <View style={{ paddingHorizontal: spacing.sm, alignItems: 'center' }}>
-          <MatchScore homeScore={match.homeScore} awayScore={match.awayScore} status={match.status} />
+        <TeamColumn team={match.homeTeam} compact={compact} onPress={() => onTeam(match.homeTeam)} />
+        <View style={{ width: scoreColumnWidth, flexShrink: 0, alignItems: 'center', gap: spacing.xs }}>
+          {isScored ? (
+            <MatchScore homeScore={match.homeScore} awayScore={match.awayScore} status={match.status} emphasis={compact ? 'heroCompact' : 'hero'} />
+          ) : match.status === 'scheduled' ? (
+            <>
+              <Typography variant="overline" color="textSecondary">KICKOFF</Typography>
+              <Typography variant={compact ? 'title' : 'heading'} numberOfLines={1} style={{ textAlign: 'center' }}>
+                {formatMatchDay(match.kickoff)}
+              </Typography>
+              <Typography variant="title" color="primary" numberOfLines={1}>
+                {formatKickoffTime(match.kickoff, timeFormat)}
+              </Typography>
+            </>
+          ) : (
+            <Typography variant="title" color="textSecondary" style={{ textAlign: 'center' }}>
+              {statusLabel}
+            </Typography>
+          )}
         </View>
-        <TeamColumn team={match.awayTeam} onPress={() => onTeam(match.awayTeam)} />
+        <TeamColumn team={match.awayTeam} compact={compact} onPress={() => onTeam(match.awayTeam)} />
       </View>
 
-      <View style={{ alignItems: 'center', gap: 2, marginTop: spacing.xs }}>
-        {match.venue ? (
-          <Typography variant="caption" color="textSecondary" numberOfLines={1}>
-            {match.venue}
-          </Typography>
-        ) : null}
-        <Typography variant="caption" color="textDisabled">
-          {formatKickoffShort(match.kickoff, timeFormat)}
+      {match.venue ? (
+        <Typography variant="caption" color="textSecondary" numberOfLines={1} style={{ marginTop: -spacing.sm }}>
+          {match.venue}
         </Typography>
-      </View>
+      ) : null}
     </View>
   );
 }
@@ -463,9 +477,18 @@ function MetaRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HeaderIcon({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+function formatOverviewStatus(match: Match, timeFormat: '12h' | '24h'): string {
+  if (match.status === 'scheduled') return 'Upcoming';
+  if (match.status === 'finished') return 'Full Time';
+
+  const minute = Number.isFinite(match.minute) && (match.minute ?? 0) >= 0 ? match.minute : undefined;
+  const status = formatMatchStatus({ status: match.status, minute, kickoff: match.kickoff, timeFormat });
+  return match.status === 'live' && match.statusLabel === 'HT' ? `${status} · Half-time` : status.toUpperCase();
+}
+
+function HeaderIcon({ icon, label, onPress, size = 36 }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; size?: number }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.divider, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.divider, alignItems: 'center', justifyContent: 'center' }}>
       <Ionicons name={icon} size={18} color={colors.textPrimary} />
     </Pressable>
   );

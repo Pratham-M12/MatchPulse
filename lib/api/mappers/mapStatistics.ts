@@ -1,11 +1,12 @@
 import type { ApiStatisticItem, ApiTeamStatistics } from '@/lib/api/dto/statisticsDto';
 import type { MatchStats } from '@/types/football';
 
-function getStatValue(statistics: ApiStatisticItem[], type: string): number {
+function getStatValue(statistics: ApiStatisticItem[], type: string): number | undefined {
   const item = statistics.find((stat) => stat.type === type);
-  if (item === undefined || item.value === null) return 0;
+  if (item === undefined || item.value === null) return undefined;
   if (typeof item.value === 'number') return item.value;
-  return parseInt(item.value.replace('%', ''), 10) || 0;
+  const value = parseInt(item.value.replace('%', ''), 10);
+  return Number.isFinite(value) ? value : undefined;
 }
 
 /**

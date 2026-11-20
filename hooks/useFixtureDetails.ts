@@ -37,14 +37,14 @@ export function useFixtureDetails(fixtureId: string, options?: { focused?: boole
   });
 
   const match: Match | undefined = mockMatch ?? fixtureQuery.data;
-  const hasStarted = Boolean(match && match.status !== 'scheduled' && match.status !== 'postponed');
+  const canLoadMatchDetails = Boolean(match && (match.status === 'live' || match.status === 'finished'));
   const isLive = match?.status === 'live';
   const shouldPoll = shouldPollLiveMatch({ isLive, focused, dataSaver, liveAutoRefresh });
 
   const eventsQuery = useQuery({
     queryKey: queryKeys.events(fixtureId),
     queryFn: () => footballRepository.events(fixtureId, match!.homeTeam.id),
-    enabled: shouldUseApi && hasStarted,
+    enabled: shouldUseApi && canLoadMatchDetails,
     staleTime: isLive ? 15_000 : 10 * 60_000,
     refetchInterval: () => (shouldPoll ? livePollMs.matchDetail : false),
     refetchIntervalInBackground: false,
@@ -53,7 +53,7 @@ export function useFixtureDetails(fixtureId: string, options?: { focused?: boole
   const statsQuery = useQuery({
     queryKey: queryKeys.statistics(fixtureId),
     queryFn: () => footballRepository.statistics(fixtureId, match!.homeTeam.id),
-    enabled: shouldUseApi && hasStarted,
+    enabled: shouldUseApi && canLoadMatchDetails,
     staleTime: isLive ? 15_000 : 10 * 60_000,
     refetchInterval: () => (shouldPoll ? livePollMs.matchDetail : false),
     refetchIntervalInBackground: false,
@@ -78,6 +78,7 @@ export function useFixtureDetails(fixtureId: string, options?: { focused?: boole
   });
 
   const lineupsUnavailable = isUnsupportedEndpoint(lineupsQuery.error);
+  const statsUnavailable = isUnsupportedEndpoint(statsQuery.error);
   const predictionUnavailable = isUnsupportedEndpoint(predictionQuery.error);
 
   const details: MatchDetails | undefined = mockMatch
@@ -102,13 +103,14 @@ export function useFixtureDetails(fixtureId: string, options?: { focused?: boole
     refetch: async () => {
       await Promise.all([
         fixtureQuery.refetch(),
-        hasStarted ? eventsQuery.refetch() : undefined,
-        hasStarted ? statsQuery.refetch() : undefined,
+        canLoadMatchDetails ? eventsQuery.refetch() : undefined,
+        canLoadMatchDetails ? statsQuery.refetch() : undefined,
       ]);
     },
     lineups: (lineupsQuery.data ?? []) as MatchLineup[],
     prediction: predictionQuery.data as MatchPrediction | undefined,
     lineupsUnavailable,
+    statsUnavailable,
     predictionUnavailable,
     eventsLoading: eventsQuery.isLoading,
     statsLoading: statsQuery.isLoading,

@@ -62,20 +62,20 @@ export type MatchEvent = {
 };
 
 export type MatchStats = {
-  possessionHome: number;
-  possessionAway: number;
-  shotsHome: number;
-  shotsAway: number;
-  shotsOnTargetHome: number;
-  shotsOnTargetAway: number;
-  cornersHome: number;
-  cornersAway: number;
-  foulsHome: number;
-  foulsAway: number;
-  yellowCardsHome: number;
-  yellowCardsAway: number;
-  redCardsHome: number;
-  redCardsAway: number;
+  possessionHome?: number;
+  possessionAway?: number;
+  shotsHome?: number;
+  shotsAway?: number;
+  shotsOnTargetHome?: number;
+  shotsOnTargetAway?: number;
+  cornersHome?: number;
+  cornersAway?: number;
+  foulsHome?: number;
+  foulsAway?: number;
+  yellowCardsHome?: number;
+  yellowCardsAway?: number;
+  redCardsHome?: number;
+  redCardsAway?: number;
 };
 
 export type LineupPlayer = {
