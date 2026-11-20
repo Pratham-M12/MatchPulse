@@ -14,7 +14,7 @@ export function useLeaguePage(competitionId: string) {
   const dataSaver = usePreferencesStore((state) => state.dataSaver);
   const apiLeagueId = getApiLeagueId(competitionId);
   const local = getCompetitionById(competitionId);
-  const { data: season, isLoading: isSeasonLoading } = useLeagueSeason(apiLeagueId);
+  const { data: season, isLoading: isSeasonLoading, isFetching: isSeasonFetching } = useLeagueSeason(apiLeagueId);
 
   const standingsQuery = useQuery({
     queryKey: queryKeys.standings(competitionId, season ?? 0),
@@ -43,9 +43,16 @@ export function useLeaguePage(competitionId: string) {
 
   const apiMatches = fixturesQuery.data ?? [];
   const localMatches = getMatchesByCompetition(competitionId);
-  const matches = apiMatches.length > 0 ? apiMatches : localMatches;
+  // A successful empty response is meaningful: do not replace it with static demo fixtures.
+  // Local fixtures remain available when this league has not returned an API response.
+  const hasFixtureData = fixturesQuery.data !== undefined;
+  const matches = hasFixtureData ? apiMatches : localMatches;
   const teams = standingsQuery.data?.rows.map((row) => row.team) ??
     Array.from(new Map(matches.flatMap((match) => [match.homeTeam, match.awayTeam]).map((team) => [team.id, team])).values());
+
+  const hasApiLeague = Boolean(apiLeagueId);
+  const isSectionLoading = (isLoading: boolean) => hasApiLeague && (isSeasonLoading || isLoading);
+  const isSectionFetching = (isFetching: boolean) => hasApiLeague && (isSeasonFetching || isFetching);
 
   return {
     competition: standingsQuery.data?.competition ?? local,
@@ -55,7 +62,29 @@ export function useLeaguePage(competitionId: string) {
     topScorers: scorersQuery.data ?? [],
     standingsUnavailable: isUnsupportedEndpoint(standingsQuery.error),
     scorersUnavailable: isUnsupportedEndpoint(scorersQuery.error),
-    isLoading: Boolean(apiLeagueId) && (isSeasonLoading || standingsQuery.isLoading || fixturesQuery.isLoading),
+    fixturesUnavailable: isUnsupportedEndpoint(fixturesQuery.error),
+    standings: {
+      isLoading: isSectionLoading(standingsQuery.isLoading),
+      isFetching: isSectionFetching(standingsQuery.isFetching),
+      isError: standingsQuery.isError,
+      isUnavailable: isUnsupportedEndpoint(standingsQuery.error),
+      hasData: standingsQuery.data !== undefined,
+    },
+    fixtures: {
+      isLoading: isSectionLoading(fixturesQuery.isLoading),
+      isFetching: isSectionFetching(fixturesQuery.isFetching),
+      isError: fixturesQuery.isError,
+      isUnavailable: isUnsupportedEndpoint(fixturesQuery.error),
+      hasData: hasFixtureData,
+    },
+    scorers: {
+      isLoading: isSectionLoading(scorersQuery.isLoading),
+      isFetching: isSectionFetching(scorersQuery.isFetching),
+      isError: scorersQuery.isError,
+      isUnavailable: isUnsupportedEndpoint(scorersQuery.error),
+      hasData: scorersQuery.data !== undefined,
+    },
+    isLoading: hasApiLeague && (isSeasonLoading || standingsQuery.isLoading || fixturesQuery.isLoading),
     isError: standingsQuery.isError && fixturesQuery.isError,
     refetch: () => Promise.all([standingsQuery.refetch(), fixturesQuery.refetch(), scorersQuery.refetch()]),
     localPlayers: teams.flatMap((team) => getPlayersByTeam(team.id)),

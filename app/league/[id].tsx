@@ -1,33 +1,54 @@
 ﻿import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, View } from 'react-native';
 
 import { EntityHero, EntityTabs, Metric, PlayerRow } from '@/components/entity/EntityPrimitives';
 import { AppScreen } from '@/components/layout/AppScreen';
+import { LeagueStandingsTable } from '@/components/league/LeagueStandingsTable';
+import { LeagueTopScorers } from '@/components/league/LeagueTopScorers';
 import { MatchCard } from '@/components/match/MatchCard';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { TeamLogo } from '@/components/ui/TeamLogo';
 import { Typography } from '@/components/ui/Typography';
 import { useIsOnline } from '@/hooks/useIsOnline';
 import { useLeaguePage } from '@/hooks/useLeaguePage';
-import { useFavoritesStore, useIsFavoriteLeague, useIsFavoriteTeam } from '@/store/useFavoritesStore';
+import { useFavoritesStore, useIsFavoriteLeague } from '@/store/useFavoritesStore';
 import { colors, radius, spacing } from '@/theme';
-import type { StandingRow, Team } from '@/types/football';
+import type { Team } from '@/types/football';
 
 export default function LeagueDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const online = useIsOnline();
   const [tab, setTab] = useState('OVERVIEW');
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
+  const isMounted = useRef(true);
   const page = useLeaguePage(id);
   const favorite = useIsFavoriteLeague(id);
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavoriteLeague);
   const upcoming = page.matches.filter((match) => match.status === 'scheduled' || match.status === 'live');
   const finished = page.matches.filter((match) => match.status === 'finished');
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsManualRefreshing(true);
+    try {
+      await page.refetch();
+    } finally {
+      if (isMounted.current) setIsManualRefreshing(false);
+    }
+  };
 
   if (!page.competition && !page.isLoading) {
     return (
@@ -57,18 +78,20 @@ export default function LeagueDetailsScreen() {
     <AppScreen edges={['top', 'bottom']}>
       {!online ? <View style={{ paddingTop: spacing.sm }}><OfflineBanner /></View> : null}
       <ScrollView
-        refreshControl={<RefreshControl refreshing={false} onRefresh={() => page.refetch()} tintColor={colors.primary} />}
-        contentContainerStyle={{ padding: spacing.base, paddingBottom: spacing['4xl'], gap: spacing.xl }}
+        refreshControl={<RefreshControl refreshing={isManualRefreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
+        contentContainerStyle={{ padding: spacing.base, paddingBottom: spacing['4xl'], gap: spacing.lg }}
       >
-        <ScreenHeader title="League" />
+        <ScreenHeader title="League" size={44} />
         <EntityHero
           title={page.competition.name}
           subtitle={page.competition.country}
           mark={page.competition}
           favorited={favorite}
           onToggleFavorite={() => toggleFavorite(page.competition!)}
+          metadata={`Season ${page.season}`}
+          presentation="competition"
         />
-        <EntityTabs tabs={tabs} selected={tab} onSelect={setTab} />
+        <EntityTabs tabs={tabs} selected={tab} onSelect={setTab} minHeight={44} />
 
         {tab === 'OVERVIEW' ? (
           <View style={{ gap: spacing.xl }}>
@@ -97,25 +120,51 @@ export default function LeagueDetailsScreen() {
         ) : null}
 
         {tab === 'TABLE' ? (
-          page.standingsUnavailable ? (
+          page.table ? (
+            <LeagueStandingsTable table={page.table} onTeamPress={(team) => router.push(`/team/${team.id}`)} />
+          ) : page.standings.isLoading ? (
+            <EmptyState title="Loading standings" message="Retrieving the current competition table." />
+          ) : page.standings.isUnavailable ? (
             <EmptyState title="Table unavailable" message="Standings are not included on the current API plan." />
-          ) : page.table ? (
-            <StandingsTable rows={page.table.rows} onTeam={(team) => router.push(`/team/${team.id}`)} />
+          ) : page.standings.isError ? (
+            <ErrorState message="Couldn't load standings." onRetry={() => page.refetch()} />
           ) : (
             <EmptyState title="No standings yet" message="MatchPulse will not invent league positions." />
           )
         ) : null}
 
         {tab === 'FIXTURES' ? (
-          <View style={{ gap: spacing.sm }}>
-            {upcoming.length ? upcoming.map((match) => <MatchCard key={match.id} match={match} fullWidth showNavigationAffordance onPress={() => router.push(`/match/${match.id}`)} />) : <EmptyState title="No upcoming fixtures" />}
-          </View>
+          page.fixtures.isLoading && !page.fixtures.hasData ? (
+            <EmptyState title="Loading fixtures" message="Retrieving upcoming competition fixtures." />
+          ) : page.fixtures.isUnavailable && !page.fixtures.hasData ? (
+            <EmptyState title="Fixtures unavailable" message="Fixtures are not included on the current API plan." />
+          ) : page.fixtures.isError && !page.fixtures.hasData ? (
+            <ErrorState message="Couldn't load fixtures." onRetry={() => page.refetch()} />
+          ) : upcoming.length ? (
+            <View style={{ gap: spacing.md }}>
+              <SectionTitle title="Upcoming fixtures" />
+              <View style={{ gap: spacing.sm }}>
+                {upcoming.map((match) => <MatchCard key={match.id} match={match} fullWidth showNavigationAffordance onPress={() => router.push(`/match/${match.id}`)} />)}
+              </View>
+            </View>
+          ) : <EmptyState title="No upcoming fixtures" message="No scheduled competition matches are available." />
         ) : null}
 
         {tab === 'RESULTS' ? (
-          <View style={{ gap: spacing.sm }}>
-            {finished.length ? finished.map((match) => <MatchCard key={match.id} match={match} fullWidth showNavigationAffordance onPress={() => router.push(`/match/${match.id}`)} />) : <EmptyState title="No results yet" />}
-          </View>
+          page.fixtures.isLoading && !page.fixtures.hasData ? (
+            <EmptyState title="Loading results" message="Retrieving recent competition results." />
+          ) : page.fixtures.isUnavailable && !page.fixtures.hasData ? (
+            <EmptyState title="Results unavailable" message="Fixtures are not included on the current API plan." />
+          ) : page.fixtures.isError && !page.fixtures.hasData ? (
+            <ErrorState message="Couldn't load results." onRetry={() => page.refetch()} />
+          ) : finished.length ? (
+            <View style={{ gap: spacing.md }}>
+              <SectionTitle title="Recent results" />
+              <View style={{ gap: spacing.sm }}>
+                {finished.map((match) => <MatchCard key={match.id} match={match} fullWidth showNavigationAffordance onPress={() => router.push(`/match/${match.id}`)} />)}
+              </View>
+            </View>
+          ) : <EmptyState title="No results yet" message="No completed competition matches are available." />
         ) : null}
 
         {tab === 'TEAMS' ? (
@@ -125,79 +174,26 @@ export default function LeagueDetailsScreen() {
         ) : null}
 
         {tab === 'TOP SCORERS' ? (
-          page.scorersUnavailable ? (
+          page.topScorers.length ? (
+            <LeagueTopScorers scorers={page.topScorers.slice(0, 20)} onPlayerPress={(playerId) => router.push(`/player/${playerId}`)} />
+          ) : page.scorers.isLoading && !page.scorers.hasData ? (
+            <EmptyState title="Loading top scorers" message="Retrieving competition scorer data." />
+          ) : page.scorers.isUnavailable ? (
             <EmptyState title="Top scorers unavailable" message="This endpoint is not included on the current API plan." />
-          ) : page.topScorers.length ? (
+          ) : page.scorers.isError ? (
+            <ErrorState message="Couldn't load top scorers." onRetry={() => page.refetch()} />
+          ) : !page.scorers.hasData && page.localPlayers.length ? (
             <View style={{ gap: spacing.sm }}>
-              {page.topScorers.slice(0, 20).map((item, index) => (
-                <PlayerRow key={item.player.id} player={{ ...item.player, number: index + 1 }} onPress={() => router.push(`/player/${item.player.id}`)} />
+              {page.localPlayers.map((player) => (
+                <PlayerRow key={player.id} player={player} onPress={() => router.push(`/player/${player.id}`)} />
               ))}
             </View>
           ) : (
-            <View style={{ gap: spacing.sm }}>
-              {page.localPlayers.length ? page.localPlayers.map((player) => (
-                <PlayerRow key={player.id} player={player} onPress={() => router.push(`/player/${player.id}`)} />
-              )) : <EmptyState title="No scorer data" message="Local player samples appear here only when API data is missing." />}
-            </View>
+            <EmptyState title="No scorer data" message="No competition scorer data is available." />
           )
         ) : null}
       </ScrollView>
     </AppScreen>
-  );
-}
-
-function StandingsTable({ rows, onTeam }: { rows: StandingRow[]; onTeam: (team: Team) => void }) {
-  return (
-    <View style={{ gap: spacing.xs }}>
-      <View style={{ flexDirection: 'row', paddingHorizontal: spacing.sm, gap: spacing.sm }}>
-        <Typography variant="overline" color="textDisabled" style={{ width: 24 }}>#</Typography>
-        <Typography variant="overline" color="textDisabled" style={{ flex: 1 }}>TEAM</Typography>
-        <Typography variant="overline" color="textDisabled" style={{ width: 28 }}>P</Typography>
-        <Typography variant="overline" color="textDisabled" style={{ width: 28 }}>GD</Typography>
-        <Typography variant="overline" color="textDisabled" style={{ width: 32 }}>PTS</Typography>
-      </View>
-      {rows.map((row) => (
-        <StandingRowView key={row.team.id} row={row} onPress={() => onTeam(row.team)} />
-      ))}
-    </View>
-  );
-}
-
-function StandingRowView({ row, onPress }: { row: StandingRow; onPress: () => void }) {
-  const isFavorite = useIsFavoriteTeam(row.team.id);
-  const zone = row.description?.toLowerCase() ?? '';
-  const zoneColor = zone.includes('relegation') ? colors.loss : zone.includes('champions') || zone.includes('promotion') ? colors.primary : colors.divider;
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${row.rank}. ${row.team.name}, ${row.points} points`}
-    >
-      {({ pressed }) => (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.sm,
-            padding: spacing.sm,
-            backgroundColor: isFavorite ? colors.primarySubtle : colors.surface,
-            borderRadius: radius.md,
-            borderWidth: 1,
-            borderColor: isFavorite ? colors.primaryMuted : colors.divider,
-            borderLeftWidth: 3,
-            borderLeftColor: zoneColor,
-            opacity: pressed ? 0.85 : 1,
-          }}
-        >
-          <Typography variant="label" color="textSecondary" style={{ width: 24 }}>{row.rank}</Typography>
-          <TeamLogo team={row.team} size={24} />
-          <Typography variant="label" numberOfLines={1} style={{ flex: 1 }}>{row.team.name}</Typography>
-          <Typography variant="caption" color="textSecondary" style={{ width: 28 }}>{row.played}</Typography>
-          <Typography variant="caption" color="textSecondary" style={{ width: 28 }}>{row.goalDifference}</Typography>
-          <Typography variant="label" style={{ width: 32, textAlign: 'right' }}>{row.points}</Typography>
-        </View>
-      )}
-    </Pressable>
   );
 }
 
