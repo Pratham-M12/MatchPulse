@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { Typography } from '@/components/ui/Typography';
-import { colors, spacing } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 
 type HomeHeaderProps = {
   onNotificationsPress?: () => void;
@@ -21,15 +21,15 @@ export function HomeHeader({ onNotificationsPress, unreadCount = 0 }: HomeHeader
   const router = useRouter();
 
   return (
-    <View style={{ gap: spacing.xs }}>
+    <View style={{ gap: spacing.md }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <View style={{ gap: 2 }}>
-          <Typography variant="heading">
-            Match<Typography variant="heading" color="primary">Pulse</Typography>
-          </Typography>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-            <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: colors.primary }} />
-            <Typography variant="overline" color="textSecondary">MATCH CENTRE</Typography>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1, minWidth: 0 }}>
+          <View style={{ width: 4, height: 34, borderRadius: radius.pill, backgroundColor: colors.primary }} />
+          <View style={{ gap: 2, minWidth: 0 }}>
+            <Typography variant="overline" color="primary">MATCH CENTRE</Typography>
+            <Typography variant="heading" numberOfLines={1}>
+              Match<Typography variant="heading" color="primary">Pulse</Typography>
+            </Typography>
           </View>
         </View>
 
@@ -62,10 +62,10 @@ export function HomeHeader({ onNotificationsPress, unreadCount = 0 }: HomeHeader
         </View>
       </View>
 
-      <Typography variant="title">{getGreeting()}</Typography>
-      <Typography variant="body" color="textSecondary">
-        Here&apos;s what&apos;s happening in football
-      </Typography>
+      <View style={{ gap: 2 }}>
+        <Typography variant="title">{getGreeting()}</Typography>
+        <Typography variant="caption" color="textSecondary">Here&apos;s what&apos;s happening in football</Typography>
+      </View>
     </View>
   );
 }
@@ -78,18 +78,18 @@ function IconButton({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyp
       accessibilityRole="button"
       accessibilityLabel={label}
       style={({ pressed }) => ({
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: pressed ? colors.surfaceHighlight : colors.surface,
+        width: 44,
+        height: 44,
+        borderRadius: radius.md,
+        backgroundColor: pressed ? colors.surfaceHighlight : colors.surfaceElevated,
         borderWidth: 1,
-        borderColor: colors.divider,
+        borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
         transform: [{ scale: pressed ? 0.96 : 1 }],
       })}
     >
-      <Ionicons name={icon} size={18} color={colors.textPrimary} />
+      <Ionicons name={icon} size={20} color={colors.textPrimary} />
     </Pressable>
   );
 }

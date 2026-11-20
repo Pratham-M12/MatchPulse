@@ -20,12 +20,13 @@ export function YourTeamsSection({
 }: YourTeamsSectionProps) {
   if (teams.length === 0) {
     return (
-      <View style={{ gap: spacing.md }}>
+      <View style={{ gap: spacing.sm }}>
         <View style={{ paddingHorizontal: spacing.base }}>
           <SectionTitle
             title="Your Teams"
             actionLabel="Find clubs"
             onActionPress={onSearchPress}
+            actionTouchTarget
           />
         </View>
 
@@ -36,7 +37,8 @@ export function YourTeamsSection({
               borderRadius: radius.card,
               borderWidth: 1,
               borderColor: colors.border,
-              padding: spacing.base,
+              paddingHorizontal: spacing.base,
+              paddingVertical: spacing.md,
               flexDirection: 'row',
               alignItems: 'center',
               gap: spacing.md,
@@ -78,7 +80,10 @@ export function YourTeamsSection({
                 borderColor: colors.primary,
                 borderRadius: radius.pill,
                 paddingHorizontal: spacing.md,
-                paddingVertical: spacing.xs + 2,
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
                 opacity: pressed ? 0.8 : 1,
                 flexShrink: 0,
               })}
@@ -100,6 +105,7 @@ export function YourTeamsSection({
           title="Your Teams"
           actionLabel="Add team"
           onActionPress={onSearchPress}
+            actionTouchTarget
         />
       </View>
 
@@ -107,42 +113,14 @@ export function YourTeamsSection({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: spacing.base,
-          gap: spacing.sm,
+          paddingLeft: spacing.base,
+          paddingRight: spacing['3xl'],
+          paddingVertical: spacing.xs,
+          gap: spacing.md,
           alignItems: 'center',
         }}
       >
-        {teams.map((team) => (
-          <Pressable
-            key={team.id}
-            onPress={() => onTeamPress(team)}
-            accessibilityRole="button"
-            accessibilityLabel={`${team.name}, view club details`}
-            style={({ pressed }) => ({
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: colors.surface,
-              borderWidth: 1,
-              borderColor: colors.border,
-              borderRadius: radius.card,
-              paddingVertical: spacing.sm,
-              paddingHorizontal: spacing.md,
-              minWidth: 80,
-              gap: spacing.xs,
-              opacity: pressed ? 0.85 : 1,
-              transform: [{ scale: pressed ? 0.96 : 1 }],
-            })}
-          >
-            <TeamLogo team={team} size={40} />
-            <Typography
-              variant="caption"
-              numberOfLines={1}
-              style={{ fontWeight: '600', maxWidth: 72, textAlign: 'center' }}
-            >
-              {team.shortName || team.name}
-            </Typography>
-          </Pressable>
-        ))}
+        {teams.map((team) => <FollowedTeamTile key={team.id} team={team} onPress={() => onTeamPress(team)} />)}
 
         <Pressable
           onPress={onSearchPress}
@@ -151,17 +129,16 @@ export function YourTeamsSection({
           style={({ pressed }) => ({
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: colors.surface,
+            width: 96,
+            height: 112,
+            backgroundColor: colors.surfaceElevated,
             borderWidth: 1,
             borderColor: colors.border,
             borderStyle: 'dashed',
             borderRadius: radius.card,
-            paddingVertical: spacing.sm,
-            paddingHorizontal: spacing.md,
-            minWidth: 72,
-            height: 78,
-            gap: 4,
+            gap: spacing.sm,
             opacity: pressed ? 0.8 : 1,
+            transform: [{ scale: pressed ? 0.96 : 1 }],
           })}
         >
           <View
@@ -182,5 +159,60 @@ export function YourTeamsSection({
         </Pressable>
       </ScrollView>
     </View>
+  );
+}
+
+function FollowedTeamTile({ team, onPress }: { team: Team; onPress: () => void }) {
+  const accentColor = team.color ?? colors.primary;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${team.name}, view club details`}
+      accessibilityHint="Opens club details"
+      style={({ pressed }) => ({
+        width: 96,
+        height: 112,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: colors.surfaceElevated,
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: radius.card,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.xs,
+        gap: spacing.xs,
+        opacity: pressed ? 0.85 : 1,
+        transform: [{ scale: pressed ? 0.96 : 1 }],
+        overflow: 'hidden',
+      })}
+    >
+      <View
+        pointerEvents="none"
+        style={{ position: 'absolute', top: 0, left: spacing.md, right: spacing.md, height: 2, borderRadius: radius.pill, backgroundColor: accentColor }}
+      />
+      <View
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: team.color ?? colors.primaryMuted,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <TeamLogo team={team} size={44} />
+      </View>
+      <Typography
+        variant="caption"
+        numberOfLines={2}
+        style={{ minHeight: 32, fontWeight: '700', maxWidth: 82, textAlign: 'center' }}
+      >
+        {team.shortName || team.name}
+      </Typography>
+    </Pressable>
   );
 }

@@ -18,7 +18,7 @@ export function HomeNewsSection() {
   }
 
   return (
-    <View style={{ gap: spacing.md }}>
+    <View style={{ gap: spacing.lg }}>
       <View style={{ paddingHorizontal: spacing.base }}>
         <SectionTitle title='Football News' />
       </View>
@@ -30,16 +30,30 @@ export function HomeNewsSection() {
               key={i}
               accessibilityLabel='Loading news article'
               style={{
-                height: 80,
+                height: i === 0 ? 216 : 92,
                 borderRadius: radius.card,
-                backgroundColor: colors.surface,
+                backgroundColor: i === 0 ? colors.surfaceElevated : colors.surface,
                 borderWidth: 1,
                 borderColor: colors.border,
                 padding: spacing.md,
                 gap: spacing.xs,
-                justifyContent: 'center',
+                justifyContent: i === 0 ? 'flex-end' : 'center',
               }}
             >
+              {i === 0 ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 132,
+                    borderTopLeftRadius: radius.card,
+                    borderTopRightRadius: radius.card,
+                    backgroundColor: colors.surfaceHighlight,
+                  }}
+                />
+              ) : null}
               <View
                 style={{
                   width: '85%',
@@ -87,8 +101,8 @@ export function HomeNewsSection() {
         </View>
       ) : (
         <View style={{ paddingHorizontal: spacing.base, gap: spacing.sm }}>
-          {news.map((article) => (
-            <NewsCard key={article.id} article={article} />
+          {news.map((article, index) => (
+            <NewsCard key={article.id} article={article} variant={index === 0 ? 'lead' : 'standard'} />
           ))}
         </View>
       )}

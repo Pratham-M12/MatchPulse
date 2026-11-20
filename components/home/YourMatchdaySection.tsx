@@ -26,43 +26,47 @@ export function YourMatchdaySection({
   onSearchPress,
   onBrowseMatchesPress,
 }: YourMatchdaySectionProps) {
+  const followingLabel = `Following ${favoriteTeamCount} ${favoriteTeamCount === 1 ? 'club' : 'clubs'}`;
+
   // Case 1: No teams followed yet
   if (favoriteTeamCount === 0) {
     return (
-      <View style={{ gap: spacing.md }}>
+      <View style={{ gap: spacing.sm }}>
         <View style={{ paddingHorizontal: spacing.base }}>
           <SectionTitle
             title="Your Matchday"
             actionLabel="Find clubs"
             onActionPress={onSearchPress}
+            actionTouchTarget
           />
         </View>
 
         <View style={{ paddingHorizontal: spacing.base }}>
           <View
             style={{
-              backgroundColor: colors.surface,
+              backgroundColor: colors.surfaceElevated,
               borderRadius: radius.card,
               borderWidth: 1,
-              borderColor: colors.border,
-              padding: spacing.lg,
+              borderColor: colors.primaryMuted,
+              padding: spacing.md,
               alignItems: 'center',
               justifyContent: 'center',
-              gap: spacing.sm,
+              gap: spacing.xs,
             }}
           >
             <View
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: colors.surfaceHighlight,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: colors.primarySubtle,
+                borderWidth: 1,
+                borderColor: colors.primaryMuted,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: spacing.xs,
               }}
             >
-              <Ionicons name="calendar-outline" size={22} color={colors.textDisabled} />
+              <Ionicons name="calendar-outline" size={22} color={colors.primary} />
             </View>
 
             <Typography variant="title" style={{ textAlign: 'center', fontWeight: '700' }}>
@@ -89,7 +93,10 @@ export function YourMatchdaySection({
                 borderColor: colors.primary,
                 borderRadius: radius.pill,
                 paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
                 opacity: pressed ? 0.8 : 1,
               })}
             >
@@ -106,40 +113,42 @@ export function YourMatchdaySection({
   // Case 2: Teams are followed, but no fixtures found in currently available matchdays
   if (matches.length === 0 && !isLoading) {
     return (
-      <View style={{ gap: spacing.md }}>
+      <View style={{ gap: spacing.sm }}>
         <View style={{ paddingHorizontal: spacing.base }}>
           <SectionTitle
             title="Your Matchday"
             actionLabel="All matches"
             onActionPress={onBrowseMatchesPress}
+            actionTouchTarget
           />
         </View>
 
         <View style={{ paddingHorizontal: spacing.base }}>
           <View
             style={{
-              backgroundColor: colors.surface,
+              backgroundColor: colors.surfaceElevated,
               borderRadius: radius.card,
               borderWidth: 1,
-              borderColor: colors.border,
-              padding: spacing.lg,
+              borderColor: selectedLeagueId ? colors.primaryMuted : colors.border,
+              padding: spacing.md,
               alignItems: 'center',
               justifyContent: 'center',
-              gap: spacing.sm,
+              gap: spacing.xs,
             }}
           >
             <View
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: colors.surfaceHighlight,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: selectedLeagueId ? colors.primarySubtle : colors.surfaceHighlight,
+                borderWidth: selectedLeagueId ? 1 : 0,
+                borderColor: colors.primaryMuted,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: spacing.xs,
               }}
             >
-              <Ionicons name="football-outline" size={22} color={colors.textDisabled} />
+              <Ionicons name="football-outline" size={22} color={selectedLeagueId ? colors.primary : colors.textDisabled} />
             </View>
 
             <Typography variant="title" style={{ textAlign: 'center', fontWeight: '700' }}>
@@ -168,7 +177,10 @@ export function YourMatchdaySection({
                 borderColor: colors.border,
                 borderRadius: radius.pill,
                 paddingHorizontal: spacing.lg,
-                paddingVertical: spacing.sm,
+                minWidth: 44,
+                minHeight: 44,
+                alignItems: 'center',
+                justifyContent: 'center',
                 opacity: pressed ? 0.8 : 1,
               })}
             >
@@ -186,6 +198,7 @@ export function YourMatchdaySection({
   return (
     <MatchList
       title="Your Matchday"
+      subtitle={followingLabel}
       matches={matches}
       isLoading={isLoading}
       actionLabel="See all"

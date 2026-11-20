@@ -7,6 +7,7 @@ import type { NewsItem } from '@/types/football';
 
 type NewsCardProps = {
   article: NewsItem;
+  variant?: 'standard' | 'lead';
 };
 
 function formatArticleTime(isoDate?: string): string {
@@ -22,7 +23,7 @@ function formatArticleTime(isoDate?: string): string {
   return new Date(isoDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-export function NewsCard({ article }: NewsCardProps) {
+export function NewsCard({ article, variant = 'standard' }: NewsCardProps) {
   const [imageError, setImageError] = useState(false);
 
   const handlePress = async () => {
@@ -39,6 +40,44 @@ export function NewsCard({ article }: NewsCardProps) {
 
   const timeLabel = formatArticleTime(article.publishedAt);
   const showImage = Boolean(article.imageUrl && !imageError);
+  const isLead = variant === 'lead' && showImage;
+
+  if (isLead) {
+    return (
+      <Pressable
+        onPress={handlePress}
+        accessibilityRole='link'
+        accessibilityLabel={article.title}
+        accessibilityHint='Opens full article in web browser'
+        style={({ pressed }) => ({
+          backgroundColor: colors.surfaceElevated,
+          borderRadius: radius.card,
+          borderWidth: 1,
+          borderColor: colors.divider,
+          opacity: pressed ? 0.8 : 1,
+          overflow: 'hidden',
+        })}
+      >
+        <Image
+          source={{ uri: article.imageUrl }}
+          style={{ width: '100%', height: 156, backgroundColor: colors.surfaceHighlight }}
+          resizeMode='cover'
+          onError={() => setImageError(true)}
+        />
+        <View style={{ padding: spacing.md, gap: spacing.sm }}>
+          <ArticleMeta source={article.source} timeLabel={timeLabel} />
+          <Typography variant='title' numberOfLines={3}>
+            {article.title}
+          </Typography>
+          {article.summary ? (
+            <Typography variant='caption' color='textSecondary' numberOfLines={2}>
+              {article.summary}
+            </Typography>
+          ) : null}
+        </View>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -57,7 +96,7 @@ export function NewsCard({ article }: NewsCardProps) {
       })}
     >
       <View style={{ flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' }}>
-        <View style={{ flex: 1, gap: spacing.xs }}>
+        <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
           <Typography variant='label' numberOfLines={2}>
             {article.title}
           </Typography>
@@ -89,8 +128,8 @@ export function NewsCard({ article }: NewsCardProps) {
           <Image
             source={{ uri: article.imageUrl }}
             style={{
-              width: 72,
-              height: 72,
+              width: 84,
+              height: 84,
               borderRadius: radius.md,
               backgroundColor: colors.surfaceHighlight,
             }}
@@ -100,5 +139,25 @@ export function NewsCard({ article }: NewsCardProps) {
         ) : null}
       </View>
     </Pressable>
+  );
+}
+
+function ArticleMeta({ source, timeLabel }: { source?: string; timeLabel: string }) {
+  if (!source && !timeLabel) return null;
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+      {source ? (
+        <Typography variant='overline' color='primary' numberOfLines={1} style={{ flexShrink: 1 }}>
+          {source}
+        </Typography>
+      ) : null}
+      {source && timeLabel ? <View style={{ width: 3, height: 3, borderRadius: 2, backgroundColor: colors.textDisabled }} /> : null}
+      {timeLabel ? (
+        <Typography variant='caption' color='textSecondary' numberOfLines={1}>
+          {timeLabel}
+        </Typography>
+      ) : null}
+    </View>
   );
 }

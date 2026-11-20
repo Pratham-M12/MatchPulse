@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Dimensions, ScrollView, View } from 'react-native';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { MatchCard } from '@/components/match/MatchCard';
@@ -11,6 +11,7 @@ import type { Match } from '@/types/football';
 
 type MatchListProps = {
   title: string;
+  subtitle?: string;
   matches: Match[];
   emptyMessage?: string;
   actionLabel?: string;
@@ -22,19 +23,18 @@ type MatchListProps = {
   onRetry?: () => void;
 };
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-
 const SIDE_PADDING = spacing.base;
 const CARD_GAP = spacing.md;
+const CARD_WIDTH_RATIO = 0.78;
+const MAX_CARD_WIDTH = 300;
 
 /*
  * Large enough to comfortably display team names and scores,
  * while still exposing part of the next card as a carousel hint.
  */
-const CARD_WIDTH = Math.min(SCREEN_WIDTH * 0.78, 300);
-
 export function MatchList({
   title,
+  subtitle,
   matches,
   emptyMessage = 'No matches to show right now.',
   actionLabel,
@@ -45,12 +45,16 @@ export function MatchList({
   errorMessage = 'Unable to load matches.',
   onRetry,
 }: MatchListProps) {
+  const { width: windowWidth } = useWindowDimensions();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [containerWidth, setContainerWidth] = useState<number>();
+  const availableWidth = containerWidth ?? windowWidth;
+  const cardWidth = Math.min(availableWidth * CARD_WIDTH_RATIO, MAX_CARD_WIDTH);
 
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
 
-    const index = Math.round(offsetX / (CARD_WIDTH + CARD_GAP));
+    const index = Math.round(offsetX / (cardWidth + CARD_GAP));
 
     const clampedIndex = Math.max(
       0,
@@ -63,14 +67,27 @@ export function MatchList({
   };
 
   return (
-    <View style={{ gap: spacing.md }}>
+    <View
+      onLayout={(event) => {
+        const nextWidth = event.nativeEvent.layout.width;
+        setContainerWidth((currentWidth) => currentWidth === nextWidth ? currentWidth : nextWidth);
+      }}
+      style={{ gap: spacing.md }}
+    >
       {/* SECTION HEADER */}
-      <View style={{ paddingHorizontal: SIDE_PADDING }}>
+      <View style={{ paddingHorizontal: SIDE_PADDING, gap: subtitle ? 4 : 0 }}>
         <SectionTitle
           title={title}
           actionLabel={actionLabel}
           onActionPress={onActionPress}
+          actionTouchTarget
         />
+        {subtitle ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+            <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />
+            <Typography variant="caption" color="textSecondary">{subtitle}</Typography>
+          </View>
+        ) : null}
       </View>
 
       {/* LOADING */}
@@ -89,7 +106,7 @@ export function MatchList({
               key={index}
               accessibilityLabel="Loading match"
               style={{
-                width: CARD_WIDTH,
+                width: cardWidth,
                 height: 190,
                 borderRadius: radius.card,
                 backgroundColor: colors.surface,
@@ -170,7 +187,7 @@ export function MatchList({
             horizontal
             showsHorizontalScrollIndicator={false}
             decelerationRate="fast"
-            snapToInterval={CARD_WIDTH + CARD_GAP}
+            snapToInterval={cardWidth + CARD_GAP}
             snapToAlignment="start"
             contentContainerStyle={{
               paddingLeft: SIDE_PADDING,
@@ -184,7 +201,7 @@ export function MatchList({
               <View
                 key={match.id}
                 style={{
-                  width: CARD_WIDTH,
+                  width: cardWidth,
                 }}
               >
                 <MatchCard

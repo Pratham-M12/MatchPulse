@@ -19,7 +19,13 @@ export function PopularLeagues({ leagues, selectedLeagueId, onSelectLeague }: Po
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: spacing.sm, paddingHorizontal: spacing.base }}
+      contentContainerStyle={{
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingVertical: spacing.xs,
+        paddingLeft: spacing.base,
+        paddingRight: spacing['3xl'],
+      }}
     >
       {leagues.map((league) => (
         <LeagueChip
