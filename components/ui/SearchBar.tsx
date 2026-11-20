@@ -58,9 +58,11 @@ export function SearchBar({
           onPress={handleClear}
           accessibilityRole="button"
           accessibilityLabel="Clear search"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={({ pressed }) => ({
-            padding: 2,
+            width: 44,
+            height: 44,
+            alignItems: 'center',
+            justifyContent: 'center',
             opacity: pressed ? 0.7 : 1,
           })}
         >

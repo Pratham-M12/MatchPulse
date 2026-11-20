@@ -62,6 +62,7 @@ export function useFootballSearch(rawQuery: string) {
     isLoading: apiEnabled && apiQuery.isFetching,
     isError: apiQuery.isError && !isUnsupportedEndpoint(apiQuery.error),
     unavailable: isUnsupportedEndpoint(apiQuery.error),
+    refetch: apiQuery.refetch,
   };
 }
 

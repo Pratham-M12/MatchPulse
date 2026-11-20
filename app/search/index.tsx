@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 
+import { LeagueMark, PlayerRow } from '@/components/entity/EntityPrimitives';
 import { AppScreen } from '@/components/layout/AppScreen';
 import { MatchCard } from '@/components/match/MatchCard';
 import { ScreenHeader } from '@/components/navigation/ScreenHeader';
@@ -19,42 +20,54 @@ import { colors, radius, spacing } from '@/theme';
 export default function SearchScreen() {
   const router = useRouter();
   const [value, setValue] = useState('');
-  const { results, isLoading, isError, query } = useFootballSearch(value);
+  const { results, isLoading, isError, unavailable, query, refetch } = useFootballSearch(value);
   const recent = useSearchHistoryStore((state) => state.recent);
   const pushRecent = useSearchHistoryStore((state) => state.push);
   const clearRecent = useSearchHistoryStore((state) => state.clear);
+  const normalizedValue = value.trim();
+  const isQueryPending = normalizedValue.length >= 2 && normalizedValue !== query;
+  const isSearchActive = normalizedValue.length >= 2 && !isQueryPending;
   const empty =
-    query.length >= 2 &&
+    isSearchActive &&
     !results.teams.length &&
     !results.leagues.length &&
     !results.players.length &&
     !results.matches.length &&
-    !isLoading;
+    !isLoading &&
+    !unavailable;
 
   return (
     <AppScreen edges={['top', 'bottom']}>
       <ScrollView
-        contentContainerStyle={{ padding: spacing.base, gap: spacing.xl, paddingBottom: spacing['4xl'] }}
+        contentContainerStyle={{ padding: spacing.base, paddingTop: spacing.lg, paddingBottom: spacing['4xl'] }}
         keyboardShouldPersistTaps="handled"
       >
-        <ScreenHeader title="Search" />
-        <SearchBar
-          value={value}
-          onChangeText={setValue}
-          onSubmitEditing={() => {
-            if (value.trim().length >= 2) {
-              pushRecent(value.trim());
-            }
-          }}
-          autoFocus
-        />
+        <View style={searchHeaderStyle}>
+          <View style={{ gap: spacing.xs }}>
+            <ScreenHeader title="Search" />
+            <Typography variant="caption" color="textSecondary" style={{ paddingLeft: 44 + spacing.sm }}>
+              Find teams, leagues, players, and matches
+            </Typography>
+          </View>
+          <SearchBar
+            value={value}
+            onChangeText={setValue}
+            onSubmitEditing={() => {
+              if (value.trim().length >= 2) {
+                pushRecent(value.trim());
+              }
+            }}
+            autoFocus
+          />
+        </View>
 
-        {query.length < 2 ? (
-          <View style={{ gap: spacing.md }}>
+        {normalizedValue.length < 2 ? (
+          <View style={contentSectionStyle}>
             <SectionTitle
               title="Recent searches"
               actionLabel={recent.length ? 'Clear' : undefined}
               onActionPress={recent.length ? clearRecent : undefined}
+              actionTouchTarget
             />
             {recent.length === 0 ? (
               <EmptyState
@@ -75,9 +88,11 @@ export default function SearchScreen() {
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: spacing.md,
-                        padding: spacing.md,
-                        backgroundColor: colors.surface,
-                        borderRadius: radius.md,
+                        minHeight: 44,
+                        paddingHorizontal: spacing.base,
+                        paddingVertical: spacing.md,
+                        backgroundColor: colors.surfaceElevated,
+                        borderRadius: radius.lg,
                         borderWidth: 1,
                         borderColor: colors.divider,
                         opacity: pressed ? 0.85 : 1,
@@ -93,11 +108,31 @@ export default function SearchScreen() {
           </View>
         ) : null}
 
-        {isLoading ? <Typography color="textSecondary">Searching…</Typography> : null}
-        {isError ? <ErrorState message="Search is temporarily unavailable." /> : null}
-        {empty ? <EmptyState title="No results" message="Try a club, competition, or player name." /> : null}
+        {isQueryPending || (isSearchActive && isLoading) ? (
+          <Typography color="textSecondary" style={stateStyle}>Searching…</Typography>
+        ) : null}
+        {isSearchActive && unavailable ? (
+          <View style={stateStyle}>
+            <ErrorState message="Team and league API results are unavailable. Available local results are still shown." />
+          </View>
+        ) : null}
+        {isSearchActive && isError ? (
+          <View style={stateStyle}>
+            <ErrorState
+              message="Search is temporarily unavailable."
+              onRetry={() => {
+                void refetch();
+              }}
+            />
+          </View>
+        ) : null}
+        {empty ? (
+          <View style={stateStyle}>
+            <EmptyState title="No results" message="Try a club, competition, or player name." />
+          </View>
+        ) : null}
 
-        {results.teams.length ? (
+        {isSearchActive && results.teams.length ? (
           <ResultGroup title="Teams">
             {results.teams.map((team) => {
               const secondaryContext = [team.country, team.venue].filter(Boolean).join(' • ');
@@ -118,9 +153,9 @@ export default function SearchScreen() {
                         opacity: pressed ? 0.85 : 1,
                       }}
                     >
-                      <TeamLogo team={team} size={36} />
-                      <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                        <Typography variant="body" style={{ fontWeight: '600' }} numberOfLines={1}>
+                      <TeamLogo team={team} size={40} decorative />
+                      <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                        <Typography variant="title" numberOfLines={1}>
                           {team.name}
                         </Typography>
                         {secondaryContext ? (
@@ -129,6 +164,7 @@ export default function SearchScreen() {
                           </Typography>
                         ) : null}
                       </View>
+                      <Ionicons name="chevron-forward" size={18} color={colors.textDisabled} />
                     </View>
                   )}
                 </Pressable>
@@ -137,7 +173,7 @@ export default function SearchScreen() {
           </ResultGroup>
         ) : null}
 
-        {results.leagues.length ? (
+        {isSearchActive && results.leagues.length ? (
           <ResultGroup title="Leagues">
             {results.leagues.map((league) => (
               <Pressable
@@ -156,14 +192,18 @@ export default function SearchScreen() {
                       opacity: pressed ? 0.85 : 1,
                     }}
                   >
-                    <Typography style={{ flex: 1 }} numberOfLines={1}>
-                      {league.name}
-                    </Typography>
-                    {league.country ? (
-                      <Typography variant="caption" color="textSecondary">
-                        {league.country}
+                    <LeagueMark competition={league} size={40} />
+                    <View style={{ flex: 1, minWidth: 0, gap: spacing.xs }}>
+                      <Typography variant="title" numberOfLines={2}>
+                        {league.name}
                       </Typography>
-                    ) : null}
+                      {league.country ? (
+                        <Typography variant="caption" color="textSecondary" numberOfLines={1}>
+                          {league.country}
+                        </Typography>
+                      ) : null}
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={colors.textDisabled} />
                   </View>
                 )}
               </Pressable>
@@ -171,47 +211,29 @@ export default function SearchScreen() {
           </ResultGroup>
         ) : null}
 
-        {results.players.length ? (
+        {isSearchActive && results.players.length ? (
           <ResultGroup title="Players">
             {results.players.map((player) => (
-              <Pressable
+              <PlayerRow
                 key={player.id}
+                player={player}
                 onPress={() => {
                   pushRecent(query.trim() || player.name);
                   router.push(`/player/${player.id}`);
                 }}
-                accessibilityRole="button"
-                accessibilityLabel={`Open ${player.name}`}
-              >
-                {({ pressed }) => (
-                  <View
-                    style={{
-                      ...rowStyle,
-                      opacity: pressed ? 0.85 : 1,
-                    }}
-                  >
-                    <Typography style={{ flex: 1 }} numberOfLines={1}>
-                      {player.name}
-                    </Typography>
-                    {player.position ? (
-                      <Typography variant="caption" color="textSecondary">
-                        {player.position}
-                      </Typography>
-                    ) : null}
-                  </View>
-                )}
-              </Pressable>
+              />
             ))}
           </ResultGroup>
         ) : null}
 
-        {results.matches.length ? (
+        {isSearchActive && results.matches.length ? (
           <ResultGroup title="Matches">
             {results.matches.map((match) => (
               <MatchCard
                 key={match.id}
                 match={match}
                 fullWidth
+                showNavigationAffordance
                 onPress={() => {
                   pushRecent(query.trim() || `${match.homeTeam.shortName} vs ${match.awayTeam.shortName}`);
                   router.push(`/match/${match.id}`);
@@ -227,17 +249,34 @@ export default function SearchScreen() {
 
 function ResultGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View style={{ gap: spacing.sm }}>
+    <View style={contentSectionStyle}>
       <SectionTitle title={title} />
       {children}
     </View>
   );
 }
 
+const searchHeaderStyle = {
+  gap: spacing.lg,
+  paddingBottom: spacing.xl,
+  borderBottomWidth: 1,
+  borderBottomColor: colors.divider,
+};
+
+const contentSectionStyle = {
+  gap: spacing.md,
+  paddingTop: spacing.xl,
+};
+
+const stateStyle = {
+  paddingTop: spacing.xl,
+};
+
 const rowStyle = {
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
   gap: spacing.md,
+  minHeight: 64,
   padding: spacing.md,
   backgroundColor: colors.surface,
   borderRadius: radius.lg,
