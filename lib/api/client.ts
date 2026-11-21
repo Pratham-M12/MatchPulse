@@ -7,22 +7,28 @@ import {
   UnsupportedEndpointError,
 } from '@/lib/api/errors';
 
+export const DEFAULT_FOOTBALL_PROXY_URL =
+  'https://matchpulse-football-proxy.prathammendon12.workers.dev';
+
 /**
- * API-Football (API-SPORTS) client.
+ * MatchPulse API-Football client.
  *
- * The key must be set as EXPO_PUBLIC_API_FOOTBALL_KEY in a local .env
- * file (see .env.example) — never hardcoded here or committed to Git.
+ * All football data requests route through the MatchPulse Cloudflare Worker
+ * proxy (services/football-proxy/), which holds the upstream API-Football key
+ * securely as a Cloudflare Worker secret and enforces request budgets,
+ * edge rate limiting, and response caching.
  *
- * Security note: EXPO_PUBLIC_ variables are inlined into the JS bundle
- * at build time, so this key IS technically extractable from a built
- * app. This client is behind a repository interface so a backend proxy
- * can replace it later without rewriting screens.
+ * The mobile client never receives or transmits API-Football provider keys.
+ * Base URL can be overridden via EXPO_PUBLIC_FOOTBALL_PROXY_URL for staging/testing.
  */
+const baseURL =
+  process.env.EXPO_PUBLIC_FOOTBALL_PROXY_URL?.trim() || DEFAULT_FOOTBALL_PROXY_URL;
+
 export const apiFootballClient = axios.create({
-  baseURL: 'https://v3.football.api-sports.io',
+  baseURL,
   timeout: 12000,
   headers: {
-    'x-apisports-key': process.env.EXPO_PUBLIC_API_FOOTBALL_KEY ?? '',
+    Accept: 'application/json',
   },
 });
 
