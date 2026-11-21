@@ -1,4 +1,4 @@
-﻿# MatchPulse
+# MatchPulse
 
 <div align="center">
 
@@ -321,7 +321,8 @@ flowchart TD
         Errors["Typed Error Contracts<br/>(UnsupportedEndpointError, QuotaExceededError)"]
     end
 
-    subgraph Remote ["External API Provider"]
+    subgraph Remote ["Backend Proxy & External Provider"]
+        FootballProxy["Cloudflare Football Proxy<br/>matchpulse-football-proxy"]
         ApiSports["API-Football v3<br/>https://v3.football.api-sports.io"]
     end
 
@@ -331,8 +332,9 @@ flowchart TD
     Repository --> SeasonResolver
     Repository --> FixturesService
     FixturesService --> ApiClient
-    ApiClient --> Remote
-    Remote --> Interceptors
+    ApiClient --> FootballProxy
+    FootballProxy --> ApiSports
+    FootballProxy --> Interceptors
     Interceptors --> Errors
     Interceptors --> Mappers
     Mappers --> Repository
@@ -507,14 +509,14 @@ Cold App Launch (No Active Network Connection)
 
 ## API Integration & Error Contracts
 
-MatchPulse connects directly to the **API-Football (API-SPORTS) v3 REST API**.
+MatchPulse connects to the **API-Football (API-SPORTS) v3 REST API** through its dedicated Cloudflare Worker proxy (`services/football-proxy/`).
 
-### API-Football v3 REST Client
+### API-Football v3 Proxy Client
 
 The API client (`lib/api/client.ts`) is configured with:
-- **Base URL**: `https://v3.football.api-sports.io`
+- **Base URL**: `https://matchpulse-football-proxy.prathammendon12.workers.dev` (overridable via `EXPO_PUBLIC_FOOTBALL_PROXY_URL`)
 - **Request Timeout**: 12,000ms
-- **Authentication**: `x-apisports-key` header loaded from `process.env.EXPO_PUBLIC_API_FOOTBALL_KEY`
+- **Authentication**: Handled entirely server-side; the Cloudflare Worker securely injects `API_FOOTBALL_KEY` to API-Football in the `x-apisports-key` header. The mobile application transmits zero provider credentials.
 - **Telemetry Seam**: `recordApiCall` tracks request count, methods, and endpoints for runtime dev diagnostics.
 
 ### HTTP 200 Error Payload Contracts
@@ -557,7 +559,7 @@ To maximize the Free plan's 100 requests/day limit:
 
 ## Environment Variables
 
-MatchPulse reads its API key at runtime through Expo's public environment variable mechanism.
+MatchPulse connects to backend Cloudflare Workers for both API-Football and GNews proxying. Sensitive provider credentials (`API_FOOTBALL_KEY`, `GNEWS_API_KEY`) are stored exclusively as encrypted Cloudflare Worker secrets and are never bundled with or exposed by the mobile client.
 
 ### Configuration (`.env`)
 
@@ -567,16 +569,20 @@ Copy the example configuration to create your local `.env`:
 cp .env.example .env
 ```
 
-Define your API-Football key in `.env`:
+Configure proxy endpoints in `.env` (optional overrides):
 
 ```env
-# Free API key from https://dashboard.api-football.com (Free plan: 100 requests/day).
-# Must be prefixed with EXPO_PUBLIC_ to be inlined by Expo at build time.
-EXPO_PUBLIC_API_FOOTBALL_KEY=your_actual_api_sports_key_here
+# Public URL of the deployed MatchPulse API-Football proxy (services/football-proxy/).
+# Defaults to the production Worker if omitted:
+EXPO_PUBLIC_FOOTBALL_PROXY_URL=https://matchpulse-football-proxy.prathammendon12.workers.dev
+
+# Public URL of the deployed MatchPulse GNews proxy (services/news-proxy/).
+# Leave blank to disable football news (the app will show a neutral placeholder).
+EXPO_PUBLIC_NEWS_PROXY_URL=https://matchpulse-news-proxy.prathammendon12.workers.dev
 ```
 
 > [!NOTE]
-> `EXPO_PUBLIC_` variables are inlined into the client bundle at build time. The API client is architected behind the `footballRepository` interface, allowing a future secure backend proxy to replace direct client requests without altering any screen or component logic.
+> `EXPO_PUBLIC_` variables are inlined into the client bundle at build time. The API-Football client communicates exclusively with the secured Cloudflare Worker proxy (`services/football-proxy/`), which attaches upstream credentials server-side and enforces rate limiting, daily request quotas, and edge caching.
 
 ---
 
@@ -607,7 +613,7 @@ EXPO_PUBLIC_API_FOOTBALL_KEY=your_actual_api_sports_key_here
 3. **Configure environment variables**:
    ```bash
    cp .env.example .env
-   # Add your EXPO_PUBLIC_API_FOOTBALL_KEY to .env
+   # Optionally customize proxy URLs in .env (defaults to deployed Cloudflare Workers)
    ```
 
 4. **Verify TypeScript compilation**:
